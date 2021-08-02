@@ -1,0 +1,24 @@
+.btn-connect-wallet {
+    box-sizing: border-box;
+    min-width: 0px;
+    font-family: Inter, "Helvetica Neue", sans-serif;
+    font-weight: 600;
+    line-height: 2.1em;
+    font-size: 18px;
+    color: #FFF;
+    cursor: pointer;
+    border-radius: 32px;
+    transition: background 0.2s ease-in 0s;
+    background-color: #25273D;
+    display: flex;
+    margin: 0px auto;
+    padding: 8px 40px;
+    -webkit-box-align: center;
+    align-items: center;
+    border: none;
+    outline: none;
+}
+
+.btn-connect-wallet:hover {
+    background-color: #626472;
+}
