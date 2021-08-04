@@ -5,11 +5,10 @@
     font-weight: 600;
     line-height: 2.1em;
     font-size: 18px;
-    color: #FFF;
     cursor: pointer;
-    border-radius: 32px;
     transition: background 0.2s ease-in 0s;
-    background-color: #25273D;
+    background: #26283E;
+    border-radius: 60px;
     display: flex;
     margin: 0px auto;
     padding: 8px 40px;
@@ -17,6 +16,18 @@
     align-items: center;
     border: none;
     outline: none;
+    font-family: Proxima Nova;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 22px;
+    /* identical to box height */
+
+    text-align: center;
+
+    /* white */
+
+    color: #FFFFFF;
 }
 
 .btn-connect-wallet:hover {
