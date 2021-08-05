@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { Route, Switch, useHistory, useLocation } from 'react-router-dom'
 import { ethers } from 'ethers'
@@ -6,12 +6,11 @@ import styled from 'styled-components'
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import './style.css'
 
-const AccountSettingsWrapper = styled.div`
+const AccountSettingsForm = styled.form`
   margin: auto;
   max-width: 600px;
-  opacity: 0.3;
 
-  border: 1px solid #787A9B;
+  border: 1px solid rgba(120, 122, 155, 0.3);
   box-sizing: border-box;
   border-radius: 8px;
   padding: 32px;
@@ -20,7 +19,7 @@ const AccountSettingsWrapper = styled.div`
 const FormRow = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 `
 
 const FormLabel = styled.label`
@@ -51,17 +50,46 @@ color: #787A9B;
 padding: 16px;
 /* grey */
 
-border: 1px solid #787A9B;
+border: 1px solid rgba(120, 122, 155, 0.3);
 box-sizing: border-box;
 border-radius: 8px;
+
+&:focus {
+  outline: none;
+}
 `
 
 const FormSpan = styled.span`
   color: grey;
 `
 
+const FormButton = styled.button`
+  background: #26283E;
+  border-radius: 60px;
+  font-family: Proxima Nova;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 22px;
+  /* identical to box height */
+
+  text-align: center;
+
+  /* white */
+
+  color: #FFFFFF;
+  padding: 17px 0;
+  min-width: 120px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+`
+
 function Account() {
 	const dispatch = useDispatch()
+
+  const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
+  const account = useSelector((state) => state.ConnectWallet.account)
 
 	const connectMetamask = async () => {
     if (window.ethereum === undefined) {
@@ -113,20 +141,41 @@ function Account() {
       }
     }
   }
+console.log(account)
+  const handleSubmit = (e) => {
+    try {
+      const form = e.target;
+      const params = {
+        name: form.name.value,
+        email: form.email.value
+      };
 
-  const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
-  const account = useSelector((state) => state.ConnectWallet.account)
+    } catch (error) {
+      
+    }
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
+  useEffect(() => {
+    handleWalletConnect();
+  }, [])
 	return (
 		<div>
 			<h1 className="page-title">Account Settings</h1>
-			<AccountSettingsWrapper>
+			<AccountSettingsForm onSubmit={handleSubmit}>
 				<FormRow>
           <FormLabel>Name</FormLabel>
-          <FormInput></FormInput>
+          <FormInput name="name"></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
-			</AccountSettingsWrapper>
+        <FormRow>
+          <FormLabel>Email</FormLabel>
+          <FormInput type="email" name="email"></FormInput>
+          <FormSpan></FormSpan>
+        </FormRow>
+        <FormButton>Save</FormButton>
+			</AccountSettingsForm>
 		</div>
 	);
 }
