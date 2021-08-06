@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import { Route, Switch, useHistory, useLocation } from 'react-router-dom'
+import { urls } from '../../constants/urls'
 import { ethers } from 'ethers'
+import axios from 'axios'
 import styled from 'styled-components'
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import './style.css'
@@ -90,6 +91,7 @@ function Account() {
 
   const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
   const account = useSelector((state) => state.ConnectWallet.account)
+  const [walletAddress, setWalletAddress] = useState('')
 
 	const connectMetamask = async () => {
     if (window.ethereum === undefined) {
@@ -120,6 +122,7 @@ function Account() {
     let chainId = (await provider.getNetwork()).chainId
     let accounts = await provider.listAccounts()
     let account = accounts[0]
+    setWalletAddress(account)
     dispatch(WalletConnectActions.setAccount(account))
     return chainId
   }
@@ -141,15 +144,22 @@ function Account() {
       }
     }
   }
-console.log(account)
   const handleSubmit = (e) => {
     try {
       const form = e.target;
       const params = {
         name: form.name.value,
-        email: form.email.value
+        email: form.email.value,
+        address: walletAddress
       };
 
+      const response = axios.post(`${urls.api_url}/register-account`, JSON.stringify(params), {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(function () {
+
+      });
     } catch (error) {
       
     }
