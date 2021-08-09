@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
+import ClipLoader from "react-spinners/ClipLoader";
 import { urls } from '../../constants/urls'
 import { ethers } from 'ethers'
 import axios from 'axios'
 import styled from 'styled-components'
+import { toast } from 'react-toastify'
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import './style.css'
 
@@ -79,19 +81,25 @@ const FormButton = styled.button`
   /* white */
 
   color: #FFFFFF;
-  padding: 17px 0;
-  min-width: 120px;
+  padding: 0 64px;
+  height: 56px;
+  min-width: 168px;
   cursor: pointer;
   border: none;
   outline: none;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .6;
+  }
 `
 
 function Account() {
 	const dispatch = useDispatch()
 
   const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
-  const account = useSelector((state) => state.ConnectWallet.account)
   const [walletAddress, setWalletAddress] = useState('')
+  const [loading, setLoading] = useState(false)
 
 	const connectMetamask = async () => {
     if (window.ethereum === undefined) {
@@ -145,6 +153,7 @@ function Account() {
     }
   }
   const handleSubmit = (e) => {
+    let msg = 'An error occured while registring account. Please try again.';
     try {
       const form = e.target;
       const params = {
@@ -153,15 +162,57 @@ function Account() {
         address: walletAddress
       };
 
-      const response = axios.post(`${urls.api_url}/register-account`, JSON.stringify(params), {
+      if (form.checkValidity() === false) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
+      setLoading(true);
+      axios.post(`${urls.api_url}/register-account`, JSON.stringify(params), {
         headers: {
           'Content-Type': 'application/json'
         }
-      }).then(function () {
+      }).then(function (response) {
+        const data = response.data;
+        if (data.success === true) {
+          toast.success('Registered successfully!', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+          });
+        } else {
+          if (data.message === 'ACCOUNT_ALREADY_EXIST') {
+            msg = 'Account with the same address or email already exists';
+          }
 
+          toast.error(msg, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+          });
+        }
+        setLoading(false);
       });
     } catch (error) {
-      
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
+      setLoading(false);
     }
     e.preventDefault();
     e.stopPropagation();
@@ -176,15 +227,19 @@ function Account() {
 			<AccountSettingsForm onSubmit={handleSubmit}>
 				<FormRow>
           <FormLabel>Name</FormLabel>
-          <FormInput name="name"></FormInput>
+          <FormInput name="name" required></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
         <FormRow>
           <FormLabel>Email</FormLabel>
-          <FormInput type="email" name="email"></FormInput>
+          <FormInput type="email" name="email" required></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
-        <FormButton>Save</FormButton>
+        <FormButton disabled={loading}>
+          {
+            loading ? (<ClipLoader color="#EFF3FB" loading={loading} size={24} />) : 'Save'
+          }
+        </FormButton>
 			</AccountSettingsForm>
 		</div>
 	);

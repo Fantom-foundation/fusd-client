@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import { Route, Switch, useHistory, useLocation } from 'react-router-dom'
 import { ethers } from 'ethers'
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import './style.css'
@@ -60,7 +59,6 @@ function Connect() {
   }
 
   const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
-  const account = useSelector((state) => state.ConnectWallet.account)
 
 	return (
 		<div>

@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
-import Header from '../Header';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import Home from '../../pages/Home'
 import Connect from '../../pages/Connect'
 import Account from '../../pages/Account'
@@ -21,6 +23,7 @@ function App() {
             <Home />
           </Route>
         </Switch>
+        <ToastContainer />
       </div>
     </Router>
   );

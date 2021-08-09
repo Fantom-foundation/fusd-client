@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux'
-import { Route, Switch, useHistory, useLocation } from 'react-router-dom'
-import { ethers } from 'ethers'
-import WalletConnectActions from '../../actions/walletconnect.actions'
+import { useHistory } from 'react-router-dom'
 import './style.css';
-import logo from '../../assets/logos/logo.svg';
 
 function Header() {
 	let history = useHistory()
-	const [connectionTried, setConnectionTried] = useState(false)
-	const dispatch = useDispatch()
 
 	// const connectMetamask = async () => {
   //   if (window.ethereum === undefined) {
