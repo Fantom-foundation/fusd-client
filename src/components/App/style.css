@@ -14,7 +14,6 @@
 }
 
 .App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -35,4 +34,18 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.page-title {
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 47px;
+  /* identical to box height */
+  margin: 30px 0;
+
+  /* black */
+
+  color: #26283E; 
 }

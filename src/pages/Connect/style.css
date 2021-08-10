@@ -1,0 +1,31 @@
+.wallets-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: auto;
+}
+
+.wallet-title {
+    box-sizing: border-box;
+    margin: 0px;
+    min-width: 0px;
+    appearance: none;
+    display: inline-block;
+    text-decoration: none;
+    padding: 16px;
+    border-image: initial;
+    font-family: Inter, "Helvetica Neue", sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    font-size: 16px;
+    color: #25273D;
+    background-color: white;
+    border-radius: 16px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #D1DEE6;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    margin: 10px;
+}
