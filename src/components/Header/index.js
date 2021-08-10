@@ -66,6 +66,9 @@ function Header() {
 
   return (
     <div className="App-header">
+      <div>
+        Logo
+      </div>
 			<button onClick={() => history.push("/connect")} className="btn-connect-wallet">
 				Connect wallet
 			</button>
