@@ -31,7 +31,7 @@
 @font-face {
   font-family: 'Roboto';
   src: local('Roboto'), url(./assets/fonts/Roboto-Medium.woff2) format('woff2');
-  font-weight: 600;
+  font-weight: 500;
 }
 
 @font-face {
@@ -55,7 +55,7 @@
 @font-face {
   font-family: 'Inter';
   src: local('Inter'), url(./assets/fonts/Inter-Medium.woff2) format('woff2');
-  font-weight: 600;
+  font-weight: 500;
 }
 
 @font-face {

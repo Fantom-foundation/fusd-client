@@ -1,6 +1,50 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom'
+import styled from 'styled-components'
+import RightArrowIcon from '../../assets/icons/right_arrow.svg'
 import './style.css';
+
+const LogoContainer = styled.div`
+  color: black;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 28px;
+
+  /* black */
+
+  color: #26283E;
+`
+
+const HeaderConnectWalletButton = styled.button`
+  font-family: Proxima Nova;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 19px;
+
+  /* black */
+
+  color: #26283E;
+  background: #FFFFFF;
+  border-radius: 60px;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .6;
+  }
+`
+
+const RightArrowImg = styled.img`
+  width: 10px;
+  height: 10px;
+  margin: 10px;
+`
 
 function Header() {
 	let history = useHistory()
@@ -66,12 +110,13 @@ function Header() {
 
   return (
     <div className="App-header">
-      <div>
-        Logo
-      </div>
-			<button onClick={() => history.push("/connect")} className="btn-connect-wallet">
+      <LogoContainer>
+        LOGO
+      </LogoContainer>
+      <HeaderConnectWalletButton onClick={() => history.push("/connect")}>
 				Connect wallet
-			</button>
+        <RightArrowImg src={RightArrowIcon}></RightArrowImg>
+      </HeaderConnectWalletButton>
     </div>
   );
 }
