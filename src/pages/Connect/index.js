@@ -2,6 +2,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { ethers } from 'ethers'
 import WalletConnectActions from '../../actions/walletconnect.actions'
+import { DestNet } from '../../constants/wallet.constants'
 import './style.css'
 
 function Connect() {
@@ -48,7 +49,7 @@ function Connect() {
     } else {
       // handle connect here
       let chainId = await connectMetamask()
-      if (chainId !== 1001) {
+      if (chainId !== DestNet.ChainID) {
         console.log('not connected to Opera Network')
         dispatch(WalletConnectActions.connectWallet(chainId))
       } else {
