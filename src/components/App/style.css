@@ -1,5 +1,8 @@
 .App {
   text-align: center;
+  max-width: 1440px;
+  padding: 0 156px;
+  margin: auto;
 }
 
 .App-logo {
@@ -15,7 +18,7 @@
 
 .App-header {
   height: 100px;
-  padding: 35px 156px;
+  padding: 35px 0;
   display: flex;
   flex-direction: row;
   align-items: center;

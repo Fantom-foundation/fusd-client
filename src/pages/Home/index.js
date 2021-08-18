@@ -1,5 +1,6 @@
 import Header from '../../components/Header';
 import { useHistory } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 import RightArrowIcon from '../../assets/icons/right_arrow_white.svg'
 
@@ -54,6 +55,8 @@ const RightArrowImg = styled.img`
 
 function Home() {
   let history = useHistory()
+  const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
+
   return (
       <div>
         <Header/>
@@ -62,10 +65,17 @@ function Home() {
           <p>Open a Fantom Vault, deposit your collateral, and generate fUSD against it.</p>
           <p>Connect a wallet to start.</p>
         </PageBodyText>
-        <ConnectWalletButton onClick={() => history.push("/connect")}>
-          Connect wallet
-          <RightArrowImg src={RightArrowIcon}></RightArrowImg>
-        </ConnectWalletButton>
+        {
+          isConnected ? 
+            <ConnectWalletButton onClick={() => history.push("/vault")}>
+              Open a vault
+              <RightArrowImg src={RightArrowIcon}></RightArrowImg>
+            </ConnectWalletButton> :
+            <ConnectWalletButton onClick={() => history.push("/connect")}>
+              Connect wallet
+              <RightArrowImg src={RightArrowIcon}></RightArrowImg>
+            </ConnectWalletButton>
+        }
       </div>
   );
 }
