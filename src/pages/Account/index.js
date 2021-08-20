@@ -6,6 +6,7 @@ import { ethers } from 'ethers'
 import axios from 'axios'
 import styled from 'styled-components'
 import { toast } from 'react-toastify'
+import Header from '../../components/Header';
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import './style.css'
 
@@ -223,6 +224,7 @@ function Account() {
   }, [])
 	return (
 		<div>
+      <Header/>
 			<h1 className="page-title">Account Settings</h1>
 			<AccountSettingsForm onSubmit={handleSubmit}>
 				<FormRow>
