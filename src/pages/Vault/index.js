@@ -1,10 +1,15 @@
 import Header from '../../components/Header';
+import axios from 'axios'
+import { BigNumber, toFormat } from '@ethersproject/bignumber';
 import { useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 import FTMIcon from '../../assets/icons/ftm.svg'
 import SwapIcon from '../../assets/icons/swap.svg'
 import PlusIcon from '../../assets/icons/plus.svg'
+import { urls } from '../../constants/urls'
+import { useEffect, useState } from 'react';
+import { ethers } from 'ethers';
 
 const VaultPageWrapper = styled.div`
 	margin: 20px 0;
@@ -363,7 +368,7 @@ const DepositFTMInputWrapper = styled.div`
 	margin-top: 8px;
 `
 
-const DepositFTMInput = styled.div`
+const DepositFTMInput = styled.input`
 font-family: Inter;
 font-style: normal;
 font-weight: 500;
@@ -374,6 +379,8 @@ line-height: 24px;
 
 color: #787A9B;
 margin-top: 8px;
+border: none;
+outline: none;
 `
 const DepositUSDInput = styled.div`
 font-family: Proxima Nova;
@@ -396,6 +403,7 @@ const DepositFTMSwapImg = styled.img`
 	right: 24px;
 	top: 50%;
 	transform: translateY(-50%);
+	cursor: pointer;
 `
 
 const GenerateFUSDButton = styled.div`
@@ -441,6 +449,9 @@ const SetupProxyButton = styled.button`
   /* white */
 
   color: #FFFFFF;
+	&:disabled {
+		opacity: 0.3;
+	}
 `
 
 const FUSDVaultInfoWrapper = styled.div`
@@ -491,6 +502,69 @@ color: #26283E;
 
 function Vault() {
 	const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
+	const account = useSelector((state) => state.ConnectWallet.account)
+	const [collateral, setCollateral] = useState(['', ''])
+	const [balance, setBalance] = useState(0)
+	const [turnCollateral, setTurnCollateral] = useState(0)
+	const [price, setPrice] = useState('')
+	const cryptoCurrencies = ['FTM', 'USD']
+
+	const getBalance = async () => {
+		await window.ethereum.enable()
+		const provider = new ethers.providers.Web3Provider(window.ethereum)
+		let balance = await provider.getBalance(account)
+		balance = BigNumber.from(balance)
+		setBalance(balance)
+	}
+
+	const getPrice = async () => {
+    try {
+      const response = await axios.get(`${urls.pricefeed}`)
+			setPrice(response.data.price)
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+	const handleCollateralChange = () => {
+		setTurnCollateral(oppositeCollateralCurrency())
+	}
+
+	const changeCollateralHandler = (value) => {
+		const collateralAmounts = collateral
+		let amount = parseFloat(value)
+		amount = isNaN(amount) ? '' : amount
+		collateralAmounts[turnCollateral] = amount
+		collateralAmounts[oppositeCollateralCurrency()] = turnCollateral ? (amount / price) : (amount * price)
+		setCollateral([...collateralAmounts])
+	}
+
+	const oppositeCollateralCurrency = () => {
+		return turnCollateral ? 0 : 1
+	}
+
+	const formatValue = (value) => {
+		let amount = ethers.utils.formatEther(value, 2);
+		amount = parseFloat(amount)
+		return amount.toLocaleString('en-US', {
+			maximumFractionDigits: 2,
+			minimumFractionDigits: 2
+		})
+	}
+
+	const formatNumber = (value) => {
+		let amount = parseFloat(value)
+		amount = isNaN(amount) ? 0 : amount;
+		return amount.toLocaleString('en-US', {
+			maximumFractionDigits: 2,
+			minimumFractionDigits: 2
+		})
+	}
+
+	useEffect(() => {
+		getBalance();
+		getPrice()
+	}, [])
 
 	return (
 		<div>
@@ -524,7 +598,7 @@ function Vault() {
 						<PriceInfoWrapper>
 							<CurrentPriceInfo>
 								<InfoLabel>Current FTM/USD price</InfoLabel>
-								<CurrentPrice>$0.24</CurrentPrice>
+								<CurrentPrice>${formatNumber(price)}</CurrentPrice>
 							</CurrentPriceInfo>
 							<NextPriceInfo>
 								<InfoLabel>Next price in 10 minutes</InfoLabel>
@@ -534,10 +608,10 @@ function Vault() {
 						<CollateralWrapper>
 							<CollateralNumberInfo>
 								<InfoLabel>Collateral locked</InfoLabel>
-								<CollateralNumber>10,000</CollateralNumber>
+								<CollateralNumber>{collateral[0] ? collateral[0] : '--'}</CollateralNumber>
 							</CollateralNumberInfo>
 							<CollateralPrice>
-							$2,403.34
+							${collateral[1] ? formatNumber(collateral[1]) : '--'}
 							</CollateralPrice>
 						</CollateralWrapper>
 					</PriceCollateralWrapper>
@@ -563,7 +637,7 @@ function Vault() {
 									Available to withdraw
 									</VaultInfoTitle>
 									<VaultInfo>
-									10,000.00
+									{formatNumber(collateral[0])}
 									<VaultUnit>
 									FTM
 									</VaultUnit>
@@ -574,7 +648,7 @@ function Vault() {
 									Available to Generate
 									</VaultInfoTitle>
 									<VaultInfo>
-									1,462.32
+									{formatNumber(collateral[1] / 1.5)}
 									<VaultUnit>
 									USD
 									</VaultUnit>
@@ -619,44 +693,53 @@ function Vault() {
 						</VaultConfiguratorDescription>
 						<DepositFTMTitleWrapper>
 							<DepositFTMTitle>Deposit FTM</DepositFTMTitle>
-							<DepositFTMBalance>Balance 1,789.45 FTM</DepositFTMBalance>
+							<DepositFTMBalance>Balance {formatValue(balance)} FTM</DepositFTMBalance>
 						</DepositFTMTitleWrapper>
 						<DepositFTMInputWrapper>
-							<DepositFTMInput>
-							10,000
+							<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)}>
 							</DepositFTMInput>
 							<DepositUSDInput>
-							~ 2,403.34 USD
+							~ {formatNumber(collateral[oppositeCollateralCurrency()])} {cryptoCurrencies[oppositeCollateralCurrency()]}
 							</DepositUSDInput>
-							<DepositFTMSwapImg src={SwapIcon}/>
+							<DepositFTMSwapImg src={SwapIcon} onClick={handleCollateralChange}/>
 						</DepositFTMInputWrapper>
-						<GenerateFUSDButton>
-							<GenrateFUSDPlusImg src={PlusIcon} />
-							Generate fUSD with this transaction
-						</GenerateFUSDButton>
-						<SetupProxyButton>Setup Proxy</SetupProxyButton>
-						<FUSDVaultInfoWrapper>
-							<FUSDVaultInfoRow>
-								<FUSDVaultInfoLabel>fUSD available</FUSDVaultInfoLabel>
-								<FUSDVaultInfo>150.3M fUSD</FUSDVaultInfo>
-							</FUSDVaultInfoRow>
-							<FUSDVaultInfoRow>
-								<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
-								<FUSDVaultInfo>150%</FUSDVaultInfo>
-							</FUSDVaultInfoRow>
-							<FUSDVaultInfoRow>
-								<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>
-								<FUSDVaultInfo>2.00%</FUSDVaultInfo>
-							</FUSDVaultInfoRow>
-							<FUSDVaultInfoRow>
-								<FUSDVaultInfoLabel>Liquidation Fee</FUSDVaultInfoLabel>
-								<FUSDVaultInfo>13%</FUSDVaultInfo>
-							</FUSDVaultInfoRow>
-							<FUSDVaultInfoRow>
-								<FUSDVaultInfoLabel>Dust Limit</FUSDVaultInfoLabel>
-								<FUSDVaultInfo>1,000.00 fUSD</FUSDVaultInfo>
-							</FUSDVaultInfoRow>
-						</FUSDVaultInfoWrapper>
+						{
+							collateral[turnCollateral] !== '' &&
+							<GenerateFUSDButton>
+								<GenrateFUSDPlusImg src={PlusIcon} />
+								Generate fUSD with this transaction
+							</GenerateFUSDButton>
+						}
+						<SetupProxyButton disabled={collateral[turnCollateral] === ''}>
+							{
+								collateral[turnCollateral] === '' ? 'Enter an amount' : 'Setup Proxy'
+							}
+						</SetupProxyButton>
+						{
+							collateral[turnCollateral] !== '' &&
+							<FUSDVaultInfoWrapper>
+								<FUSDVaultInfoRow>
+									<FUSDVaultInfoLabel>fUSD available</FUSDVaultInfoLabel>
+									<FUSDVaultInfo>150.3M fUSD</FUSDVaultInfo>
+								</FUSDVaultInfoRow>
+								<FUSDVaultInfoRow>
+									<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
+									<FUSDVaultInfo>150%</FUSDVaultInfo>
+								</FUSDVaultInfoRow>
+								<FUSDVaultInfoRow>
+									<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>
+									<FUSDVaultInfo>2.00%</FUSDVaultInfo>
+								</FUSDVaultInfoRow>
+								<FUSDVaultInfoRow>
+									<FUSDVaultInfoLabel>Liquidation Fee</FUSDVaultInfoLabel>
+									<FUSDVaultInfo>13%</FUSDVaultInfo>
+								</FUSDVaultInfoRow>
+								<FUSDVaultInfoRow>
+									<FUSDVaultInfoLabel>Dust Limit</FUSDVaultInfoLabel>
+									<FUSDVaultInfo>1,000.00 fUSD</FUSDVaultInfo>
+								</FUSDVaultInfoRow>
+							</FUSDVaultInfoWrapper>
+						}
 					</VaultConfigurator>
 				</VaultConfigurationWrapper>
 			</VaultPageWrapper>

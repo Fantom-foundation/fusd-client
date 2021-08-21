@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux'
+import { useHistory } from 'react-router-dom'
 import { ethers } from 'ethers'
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import { DestNet } from '../../constants/wallet.constants'
@@ -7,6 +8,7 @@ import './style.css'
 
 function Connect() {
 	const dispatch = useDispatch()
+  const history = useHistory()
 
 	const connectMetamask = async () => {
     if (window.ethereum === undefined) {
@@ -55,6 +57,7 @@ function Connect() {
       } else {
         console.log('connected')
         dispatch(WalletConnectActions.connectWallet(chainId))
+        history.push('/');
       }
     }
   }
