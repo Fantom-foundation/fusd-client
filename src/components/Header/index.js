@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { ethers } from 'ethers'
@@ -199,10 +199,10 @@ function Header() {
   const account = useSelector((state) => state.ConnectWallet.account)
 
   if (!connectionTried) {
+    handleWalletConnect();
     setConnectionTried(true)
-    handleWalletConnect()
   }
-
+  
   return (
     <div className="App-header">
       <LogoContainer>
