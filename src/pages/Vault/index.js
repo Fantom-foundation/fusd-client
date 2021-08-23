@@ -2,7 +2,7 @@ import Header from '../../components/Header';
 import axios from 'axios'
 import { BigNumber, toFormat } from '@ethersproject/bignumber';
 import { useHistory } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
 import FTMIcon from '../../assets/icons/ftm.svg'
 import SwapIcon from '../../assets/icons/swap.svg'
@@ -10,6 +10,7 @@ import PlusIcon from '../../assets/icons/plus.svg'
 import { urls } from '../../constants/urls'
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
+import { useWFTMContract } from 'contracts';
 
 const VaultPageWrapper = styled.div`
 	margin: 20px 0;
@@ -506,25 +507,14 @@ function Vault() {
 	const [collateral, setCollateral] = useState(['', ''])
 	const [balance, setBalance] = useState(0)
 	const [turnCollateral, setTurnCollateral] = useState(0)
-	const [price, setPrice] = useState('')
 	const cryptoCurrencies = ['FTM', 'USD']
+	const { price } = useSelector(state => state.Price);
+	const { getWFTMBalance, wrapFTM, unwrapFTM } = useWFTMContract();
 
 	const getBalance = async () => {
-		await window.ethereum.enable()
-		const provider = new ethers.providers.Web3Provider(window.ethereum)
-		let balance = await provider.getBalance(account)
-		balance = BigNumber.from(balance)
+		let balance = getWFTMBalance(account)
 		setBalance(balance)
 	}
-
-	const getPrice = async () => {
-    try {
-      const response = await axios.get(`${urls.pricefeed}`)
-			setPrice(response.data.price)
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
 	const handleCollateralChange = () => {
 		setTurnCollateral(oppositeCollateralCurrency())
@@ -560,10 +550,8 @@ function Vault() {
 			minimumFractionDigits: 2
 		})
 	}
-
 	useEffect(() => {
 		getBalance();
-		getPrice()
 	}, [])
 
 	return (
