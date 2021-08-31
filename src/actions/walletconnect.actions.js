@@ -1,4 +1,4 @@
-import { WalletConnectConstants } from '../constants/wallet.constants';
+import { WalletConnectConstants } from '../constants/walletconnection';
 
 const WalletConnectActions = {
   connectWallet,

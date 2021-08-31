@@ -1,4 +1,4 @@
-import { WalletConnectConstants } from '../constants/wallet.constants';
+import { WalletConnectConstants } from '../constants/walletconnection';
 
 export function ConnectWallet(state = { isConnected: false, chainId: 0 }, action) {
   switch (action.type) {
