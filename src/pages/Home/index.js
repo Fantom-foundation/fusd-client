@@ -1,6 +1,7 @@
 import Header from '../../components/Header';
 import { useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
 import RightArrowIcon from '../../assets/icons/right_arrow_white.svg'
 
@@ -55,7 +56,7 @@ const RightArrowImg = styled.img`
 
 function Home() {
   let history = useHistory()
-  const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
+  const { active, account, chainId } = useWeb3React();
 
   return (
       <div>
@@ -66,7 +67,7 @@ function Home() {
           <p>Connect a wallet to start.</p>
         </PageBodyText>
         {
-          isConnected ? 
+          active ? 
             <ConnectWalletButton onClick={() => history.push("/vault")}>
               Open a vault
               <RightArrowImg src={RightArrowIcon}></RightArrowImg>

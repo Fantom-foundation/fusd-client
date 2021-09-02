@@ -5,6 +5,7 @@ import { urls } from '../../constants/urls'
 import { ethers } from 'ethers'
 import axios from 'axios'
 import styled from 'styled-components'
+import { useWeb3React } from '@web3-react/core';
 import { toast } from 'react-toastify'
 import Header from '../../components/Header';
 import WalletConnectActions from '../../actions/walletconnect.actions'
@@ -98,61 +99,9 @@ const FormButton = styled.button`
 function Account() {
 	const dispatch = useDispatch()
 
-  const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
-  const [walletAddress, setWalletAddress] = useState('')
+  const { active, account, chainId } = useWeb3React();
   const [loading, setLoading] = useState(false)
 
-	const connectMetamask = async () => {
-    if (window.ethereum === undefined) {
-      return;
-    }
-    await window.ethereum.enable();
-    //   handle network change & disconnect here
-    window.ethereum.on('chainChanged', (_chainId) => {
-      //   handle chainId change
-      dispatch(WalletConnectActions.changeChainId(_chainId))
-      dispatch(WalletConnectActions.setAccount(''))
-      console.log('chainid is changed to ', _chainId)
-    })
-    window.ethereum.on('disconnect', (error) => {
-      //   handle disconnect
-      dispatch(WalletConnectActions.disconnectWallet())
-      dispatch(WalletConnectActions.setAccount(''))
-      console.log('handler for disconnection', error)
-    })
-    window.ethereum.on('accountsChanged', (accounts) => {
-      if (accounts.length === 0) {
-        // handle when no account is connected
-        dispatch(WalletConnectActions.disconnectWallet())
-        console.log('disconnected')
-      }
-    })
-    let provider = new ethers.providers.Web3Provider(window.ethereum)
-    let chainId = (await provider.getNetwork()).chainId
-    let accounts = await provider.listAccounts()
-    let account = accounts[0]
-    setWalletAddress(account)
-    dispatch(WalletConnectActions.setAccount(account))
-    return chainId
-  }
-
-	const handleWalletConnect = async () => {
-    if (isConnected) {
-      dispatch(WalletConnectActions.setAccount(''))
-      dispatch(WalletConnectActions.disconnectWallet())
-      // handle disconnect here
-    } else {
-      // handle connect here
-      let chainId = await connectMetamask()
-      if (chainId !== 1001) {
-        console.log('not connected to Opera Network')
-        dispatch(WalletConnectActions.connectWallet(chainId))
-      } else {
-        console.log('connected')
-        dispatch(WalletConnectActions.connectWallet(chainId))
-      }
-    }
-  }
   const handleSubmit = (e) => {
     let msg = 'An error occured while registring account. Please try again.';
     try {
@@ -160,7 +109,7 @@ function Account() {
       const params = {
         name: form.name.value,
         email: form.email.value,
-        address: walletAddress
+        address: account
       };
 
       if (form.checkValidity() === false) {
@@ -219,9 +168,6 @@ function Account() {
     e.stopPropagation();
   }
 
-  useEffect(() => {
-    handleWalletConnect();
-  }, [])
 	return (
 		<div>
       <Header/>

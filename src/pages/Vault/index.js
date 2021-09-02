@@ -1,8 +1,7 @@
 import Header from '../../components/Header';
 import axios from 'axios'
-import { BigNumber, toFormat } from '@ethersproject/bignumber';
-import { useHistory } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
 import FTMIcon from '../../assets/icons/ftm.svg'
 import SwapIcon from '../../assets/icons/swap.svg'
@@ -10,7 +9,7 @@ import PlusIcon from '../../assets/icons/plus.svg'
 import { urls } from '../../constants/urls'
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import { useWFTMContract } from 'contracts';
+import { useWFTMContract } from '../../contracts';
 
 const VaultPageWrapper = styled.div`
 	margin: 20px 0;
@@ -502,17 +501,16 @@ color: #26283E;
 `
 
 function Vault() {
-	const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
-	const account = useSelector((state) => state.ConnectWallet.account)
+	const { account, chainId, error } = useWeb3React();
 	const [collateral, setCollateral] = useState(['', ''])
 	const [balance, setBalance] = useState(0)
 	const [turnCollateral, setTurnCollateral] = useState(0)
-	const cryptoCurrencies = ['FTM', 'USD']
+	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, wrapFTM, unwrapFTM } = useWFTMContract();
 
 	const getBalance = async () => {
-		let balance = getWFTMBalance(account)
+		let balance = await getWFTMBalance(account)
 		setBalance(balance)
 	}
 
@@ -552,7 +550,8 @@ function Vault() {
 	}
 	useEffect(() => {
 		getBalance();
-	}, [])
+		// setTimeout(() => getBalance(), 1000)
+	}, [chainId])
 
 	return (
 		<div>
@@ -627,7 +626,7 @@ function Vault() {
 									<VaultInfo>
 									{formatNumber(collateral[0])}
 									<VaultUnit>
-									FTM
+									wFTM
 									</VaultUnit>
 									</VaultInfo>
 								</VaultDetailsInfoItem>
@@ -680,8 +679,8 @@ function Vault() {
 						Simulate your vault by configuring the amount of collateral to deposit, and fUSD to generate.
 						</VaultConfiguratorDescription>
 						<DepositFTMTitleWrapper>
-							<DepositFTMTitle>Deposit FTM</DepositFTMTitle>
-							<DepositFTMBalance>Balance {formatValue(balance)} FTM</DepositFTMBalance>
+							<DepositFTMTitle>Deposit wFTM</DepositFTMTitle>
+							<DepositFTMBalance>Balance {formatValue(balance)} wFTM</DepositFTMBalance>
 						</DepositFTMTitleWrapper>
 						<DepositFTMInputWrapper>
 							<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)}>

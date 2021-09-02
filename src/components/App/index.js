@@ -4,21 +4,21 @@ import { useEffect, useState } from 'react';
 import { Client } from '@bandprotocol/bandchain.js';
 import { ethers } from 'ethers';
 import { useDispatch, useSelector } from 'react-redux'
-import { useWeb3React } from '@web3-react/core';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Home from '../../pages/Home'
 import Connect from '../../pages/Connect'
 import Account from '../../pages/Account'
 import Vault from '../../pages/Vault'
-import { ChainIDs } from '../../constants/wallet.constants'
+import { ChainIDs } from '../../constants/walletconnection'
+import { useWeb3React } from '@web3-react/core';
 import PriceActions from '../../actions/price.actions';
 
 import './style.css';
 
 function App() {
 	const dispatch = useDispatch();
-  const chainId = useSelector((state) => state.ConnectWallet.chainId)
+  const { chainId } = useWeb3React();
 
   const [priceInterval, setPriceInterval] = useState(null);
 

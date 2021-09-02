@@ -1,25 +1,22 @@
 import { useCallback } from 'react';
 import { ethers } from 'ethers';
-import { ChainId } from '@sushiswap/sdk';
+
+import { useDispatch, useSelector } from 'react-redux'
 import { useWeb3React } from '@web3-react/core';
-
 import { WFTM_ABI } from './abi';
-import { calculateGasMargin } from 'utils';
-
-const WFTM_ADDRESS = {
-  [ChainId.FANTOM]: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
-  [ChainId.FANTOM_TESTNET]: '0x077fab8f7f79178f6718bdfdffd5c3b8d787aed5',
-};
+import { calculateGasMargin } from '../utils';
+import { WFTM_CONTRACT_ADDRESS } from '../constants/walletconnection'
 
 export const useWFTMContract = () => {
   const { chainId } = useWeb3React();
 
-  const wftmAddress = useCallback(() => WFTM_ADDRESS[chainId], [chainId]);
+  const wftmAddress = useCallback(() => WFTM_CONTRACT_ADDRESS[chainId], [chainId]);
 
   const getWFTMContract = async () => {
     await window.ethereum.enable();
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
+    console.log(chainId, wftmAddress())
     const contract = new ethers.Contract(wftmAddress(), WFTM_ABI, signer);
 
     return contract;

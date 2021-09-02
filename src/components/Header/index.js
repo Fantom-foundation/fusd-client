@@ -3,10 +3,13 @@ import { useHistory } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
+import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core';
+import { ChainId } from '@sushiswap/sdk';
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import RightArrowIcon from '../../assets/icons/right_arrow.svg'
 import fUSDIcon from '../../assets/icons/fusd.svg'
-import { DestNet } from '../../constants/wallet.constants'
+import { injected } from '../../connectors';
+import { DestNet } from '../../constants/walletconnection'
 import './style.css';
 
 const LogoContainer = styled.div`
@@ -129,61 +132,12 @@ const WalletAddress = styled.span`
   margin: 0 16px;
 `
 
+const ENV = process.env.REACT_APP_ENV;
+
 function Header() {
 	let history = useHistory()
   const dispatch = useDispatch()
-  const [connectionTried, setConnectionTried] = useState(false)
-
-	const connectMetamask = async () => {
-    if (window.ethereum === undefined) {
-      return;
-    }
-    await window.ethereum.enable();
-    //   handle network change & disconnect here
-    window.ethereum.on('chainChanged', (_chainId) => {
-      //   handle chainId change
-      dispatch(WalletConnectActions.changeChainId(_chainId))
-      dispatch(WalletConnectActions.setAccount(''))
-      console.log('chainid is changed to ', _chainId)
-    })
-    window.ethereum.on('disconnect', (error) => {
-      //   handle disconnect
-      dispatch(WalletConnectActions.disconnectWallet())
-      dispatch(WalletConnectActions.setAccount(''))
-      console.log('handler for disconnection', error)
-    })
-    window.ethereum.on('accountsChanged', (accounts) => {
-      if (accounts.length === 0) {
-        // handle when no account is connected
-        dispatch(WalletConnectActions.disconnectWallet())
-        console.log('disconnected')
-      }
-    })
-    let provider = new ethers.providers.Web3Provider(window.ethereum)
-    let chainId = (await provider.getNetwork()).chainId
-    let accounts = await provider.listAccounts()
-    let account = accounts[0]
-    dispatch(WalletConnectActions.setAccount(account))
-    return chainId
-  }
-
-	const handleWalletConnect = async () => {
-    if (isConnected) {
-      dispatch(WalletConnectActions.setAccount(''))
-      dispatch(WalletConnectActions.disconnectWallet())
-      // handle disconnect here
-    } else {
-      // handle connect here
-      let chainId = await connectMetamask()
-      if (chainId !== DestNet.ChainID) {
-        console.log('not connected to Opera Network')
-        dispatch(WalletConnectActions.connectWallet(chainId))
-      } else {
-        console.log('connected')
-        dispatch(WalletConnectActions.connectWallet(chainId))
-      }
-    }
-  }
+  const { account, chainId, active, activate } = useWeb3React();
 
   const shrinkAddress = (str) => {
 		if (str === undefined) {
@@ -194,14 +148,84 @@ function Header() {
 		}
 		return str;
 	}
-  
-  const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
-  const account = useSelector((state) => state.ConnectWallet.account)
 
-  if (!connectionTried) {
-    handleWalletConnect();
-    setConnectionTried(true)
-  }
+  const changeNetwork = async () => {
+    if (
+      (ENV === 'MAINNET' && chainId === ChainId.FANTOM) ||
+      (ENV !== 'MAINNET' && chainId === ChainId.FANTOM_TESTNET)
+    )
+      return;
+
+    history.push('/');
+
+    const params =
+      ENV === 'MAINNET'
+        ? {
+            chainId: '0xfa',
+            chainName: 'Fantom Opera',
+            nativeCurrency: {
+              name: 'Fantom',
+              symbol: 'FTM',
+              decimals: 18,
+            },
+            rpcUrls: ['https://rpc.ftm.tools'],
+            blockExplorerUrls: ['https://ftmscan.com'],
+          }
+        : {
+            chainId: '0xfa2',
+            chainName: 'Fantom Opera Testnet',
+            nativeCurrency: {
+              name: 'Fantom',
+              symbol: 'FTM',
+              decimals: 18,
+            },
+            rpcUrls: ['https://rpc.ftm.tools'],
+            blockExplorerUrls: ['https://testnet.ftmscan.com'],
+          };
+
+    const provider = await injected.getProvider();
+    try {
+      await provider.request({
+        method: 'wallet_addEthereumChain',
+        params: [params],
+      });
+      setTimeout(handleConnectWallet, 100);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const init = () => {
+    changeNetwork();
+    // login();
+  };
+
+  useEffect(() => {
+    if (account) {
+      init();
+    } else {
+      handleSignOut();
+    }
+  }, [account, chainId]);
+
+  const handleConnectWallet = () => {
+    activate(injected, undefined, true)
+      .then(() => {
+        // if (account) login();
+      })
+      .catch(async error => {
+        if (error instanceof UnsupportedChainIdError) {
+          await activate(injected);
+          // if (account) login();
+        }
+      });
+  };
+
+  const handleSignOut = () => {
+    dispatch(WalletConnectActions.disconnectWallet());
+    // dispatch(AuthActions.signOut());
+    // handleMenuClose();
+  };
   
   return (
     <div className="App-header">
@@ -209,7 +233,7 @@ function Header() {
         LOGO
       </LogoContainer>
       {
-        isConnected ? 
+        active ? 
         <HeaderButtonsContainer>
           <HeaderButton>
             My Vault
