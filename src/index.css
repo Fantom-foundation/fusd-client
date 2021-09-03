@@ -78,6 +78,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #fff;
+  background: url('../src/assets/images/background.png');
+  background-size: cover;
 }
 
 code {

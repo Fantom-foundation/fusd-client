@@ -54,6 +54,16 @@ const RightArrowImg = styled.img`
   fill: white;
 `
 
+const HomePageContentWrapper = styled.div`
+background: rgba(255, 255, 255, 0.4);
+backdrop-filter: blur(40px);
+
+/* Note: backdrop-filter has minimal browser support */
+border-radius: 36px;
+padding: 150px 170px;
+margin-top: 100px;
+`
+
 function Home() {
   let history = useHistory()
   const { active, account, chainId } = useWeb3React();
@@ -61,22 +71,24 @@ function Home() {
   return (
       <div>
         <Header/>
-        <h1 className="page-title">Generate fUSD using FTM as a collateral</h1>
-        <PageBodyText>
-          <p>Open a Fantom Vault, deposit your collateral, and generate fUSD against it.</p>
-          <p>Connect a wallet to start.</p>
-        </PageBodyText>
-        {
-          active ? 
-            <ConnectWalletButton onClick={() => history.push("/vault")}>
-              Open a vault
-              <RightArrowImg src={RightArrowIcon}></RightArrowImg>
-            </ConnectWalletButton> :
-            <ConnectWalletButton onClick={() => history.push("/connect")}>
-              Connect wallet
-              <RightArrowImg src={RightArrowIcon}></RightArrowImg>
-            </ConnectWalletButton>
-        }
+        <HomePageContentWrapper>
+          <h1 className="page-title">Generate fUSD using FTM as a collateral</h1>
+          <PageBodyText>
+            <p>Open a Fantom Vault, deposit your collateral, and generate fUSD against it.</p>
+            <p>Connect a wallet to start.</p>
+          </PageBodyText>
+          {
+            active ? 
+              <ConnectWalletButton onClick={() => history.push("/vault")}>
+                Open a vault
+                <RightArrowImg src={RightArrowIcon}></RightArrowImg>
+              </ConnectWalletButton> :
+              <ConnectWalletButton onClick={() => history.push("/connect")}>
+                Connect wallet
+                <RightArrowImg src={RightArrowIcon}></RightArrowImg>
+              </ConnectWalletButton>
+          }
+        </HomePageContentWrapper>
       </div>
   );
 }

@@ -3,6 +3,7 @@
   max-width: 1440px;
   padding: 0 156px;
   margin: auto;
+  height: 100vh;
 }
 
 .App-logo {
@@ -47,7 +48,6 @@
   font-size: 40px;
   line-height: 47px;
   /* identical to box height */
-  margin: 120px 0 0;
 
   /* black */
 
