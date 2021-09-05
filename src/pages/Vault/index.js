@@ -6,10 +6,12 @@ import styled from 'styled-components'
 import FTMIcon from '../../assets/icons/ftm.svg'
 import SwapIcon from '../../assets/icons/swap.svg'
 import PlusIcon from '../../assets/icons/plus.svg'
+import MinusIcon from '../../assets/icons/minus.svg'
 import { urls } from '../../constants/urls'
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useWFTMContract } from '../../contracts';
+import BigNumber from "bignumber.js";
 
 const VaultPageWrapper = styled.div`
 	margin: 20px 0;
@@ -381,6 +383,9 @@ color: #787A9B;
 margin-top: 8px;
 border: none;
 outline: none;
+&:focus {
+	color: #4A4C67;
+}
 `
 const DepositUSDInput = styled.div`
 font-family: Proxima Nova;
@@ -394,6 +399,9 @@ margin-top: 8px;
 /* grey */
 
 color: #787A9B;
+&:focus {
+	color: #4A4C67;
+}
 `
 
 const DepositFTMSwapImg = styled.img`
@@ -500,17 +508,89 @@ text-align: right;
 color: #26283E;
 `
 
+const GenerateFUSDContainer = styled.div`
+display: flex;
+flex-direction: column;
+margin-top: 12px;
+`
+
+const GenerateFUSDLabelRow = styled.div`
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+`
+
+const GenerateFUSDLabel = styled.label`
+font-family: Inter;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 17px;
+
+/* identical to box height */
+
+color: #141D30;
+`
+
+const GenerateFUSDMax = styled.span`
+font-family: Inter;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 17px;
+
+/* identical to box height */
+text-align: right;
+
+color: #9C9BBC;
+`
+
+const GenerateFUSDInputWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	border: 1px solid rgba(120, 122, 155, 0.3);
+	box-sizing: border-box;
+	border-radius: 8px;
+	position: relative;
+	padding: 14px 16px;
+	margin-top: 8px;
+`
+
+const GenerateFUSDInput = styled.input`
+font-family: Inter;
+font-style: normal;
+font-weight: 500;
+font-size: 20px;
+line-height: 24px;
+
+/* grey */
+
+color: #787A9B;
+margin-top: 5px;
+border: none;
+outline: none;
+&:focus {
+	color: #4A4C67;
+}
+`
+
 function Vault() {
 	const { account, chainId, error } = useWeb3React();
 	const [collateral, setCollateral] = useState(['', ''])
-	const [balance, setBalance] = useState(0)
+	const [balance, setBalance] = useState([0, 0])
 	const [turnCollateral, setTurnCollateral] = useState(0)
+	const [generateFUSD, setGenerateFUSD] = useState(false)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, wrapFTM, unwrapFTM } = useWFTMContract();
+	const collateralRatio = 1.5;
 
 	const getBalance = async () => {
-		let balance = await getWFTMBalance(account)
+		let ftmBalance = await getWFTMBalance(account)
+		ftmBalance = BigNumber(ftmBalance)
+		const priceBN = BigNumber(price)
+		let usdBalance = ftmBalance.multipliedBy(priceBN);
+		const balance = [ftmBalance, usdBalance]
 		setBalance(balance)
 	}
 
@@ -522,22 +602,13 @@ function Vault() {
 		const collateralAmounts = collateral
 		let amount = parseFloat(value)
 		amount = isNaN(amount) ? '' : amount
-		collateralAmounts[turnCollateral] = amount
-		collateralAmounts[oppositeCollateralCurrency()] = turnCollateral ? (amount / price) : (amount * price)
+		collateralAmounts[turnCollateral] = amount + (value[value.length - 1] === '.' ? '.' : '')
+		collateralAmounts[oppositeCollateralCurrency()] = (turnCollateral ? (amount / price) : (amount * price))
 		setCollateral([...collateralAmounts])
 	}
 
 	const oppositeCollateralCurrency = () => {
 		return turnCollateral ? 0 : 1
-	}
-
-	const formatValue = (value) => {
-		let amount = ethers.utils.formatEther(value, 2);
-		amount = parseFloat(amount)
-		return amount.toLocaleString('en-US', {
-			maximumFractionDigits: 2,
-			minimumFractionDigits: 2
-		})
 	}
 
 	const formatNumber = (value) => {
@@ -548,10 +619,16 @@ function Vault() {
 			minimumFractionDigits: 2
 		})
 	}
+
+	const handleGenerateFUSD = (e) => {
+		const genreate = generateFUSD;
+		setGenerateFUSD(!genreate)
+	}
+
 	useEffect(() => {
 		getBalance();
 		// setTimeout(() => getBalance(), 1000)
-	}, [chainId])
+	}, [chainId, price])
 
 	return (
 		<div>
@@ -595,7 +672,7 @@ function Vault() {
 						<CollateralWrapper>
 							<CollateralNumberInfo>
 								<InfoLabel>Collateral locked</InfoLabel>
-								<CollateralNumber>{collateral[0] ? collateral[0] : '--'}</CollateralNumber>
+								<CollateralNumber>{collateral[0] ? formatNumber(collateral[0]) : '--'}</CollateralNumber>
 							</CollateralNumberInfo>
 							<CollateralPrice>
 							${collateral[1] ? formatNumber(collateral[1]) : '--'}
@@ -680,7 +757,7 @@ function Vault() {
 						</VaultConfiguratorDescription>
 						<DepositFTMTitleWrapper>
 							<DepositFTMTitle>Deposit wFTM</DepositFTMTitle>
-							<DepositFTMBalance>Balance {formatValue(balance)} wFTM</DepositFTMBalance>
+							<DepositFTMBalance>Balance {formatNumber(balance[turnCollateral])} {cryptoCurrencies[turnCollateral]}</DepositFTMBalance>
 						</DepositFTMTitleWrapper>
 						<DepositFTMInputWrapper>
 							<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)}>
@@ -692,16 +769,30 @@ function Vault() {
 						</DepositFTMInputWrapper>
 						{
 							collateral[turnCollateral] !== '' &&
-							<GenerateFUSDButton>
-								<GenrateFUSDPlusImg src={PlusIcon} />
+							<GenerateFUSDButton onClick={handleGenerateFUSD}>
+								<GenrateFUSDPlusImg src={generateFUSD ? MinusIcon : PlusIcon} />
 								Generate fUSD with this transaction
 							</GenerateFUSDButton>
 						}
-						<SetupProxyButton disabled={collateral[turnCollateral] === ''}>
+						{
+							generateFUSD &&
+							<GenerateFUSDContainer>
+								<GenerateFUSDLabelRow>
+									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
+									<GenerateFUSDMax>Max {formatNumber(collateral[1] / collateralRatio)} fUSD</GenerateFUSDMax>
+								</GenerateFUSDLabelRow>
+								<GenerateFUSDInputWrapper>
+									<GenerateFUSDInput placeholder={formatNumber(collateral[1] / collateralRatio) + ' fUSD'}>
+
+									</GenerateFUSDInput>
+								</GenerateFUSDInputWrapper>
+							</GenerateFUSDContainer>
+						}
+						{/* <SetupProxyButton disabled={collateral[turnCollateral] === ''}>
 							{
 								collateral[turnCollateral] === '' ? 'Enter an amount' : 'Setup Proxy'
 							}
-						</SetupProxyButton>
+						</SetupProxyButton> */}
 						{
 							collateral[turnCollateral] !== '' &&
 							<FUSDVaultInfoWrapper>
@@ -711,7 +802,7 @@ function Vault() {
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>150%</FUSDVaultInfo>
+									<FUSDVaultInfo>{collateralRatio * 100}%</FUSDVaultInfo>
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>

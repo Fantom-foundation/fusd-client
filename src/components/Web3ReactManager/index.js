@@ -43,7 +43,7 @@ export default function Web3ReactManager({ children }) {
   if (!triedEager) {
     return null;
   }
-console.log(active, networkError)
+
   // if the account context isn't active, and there's an error on the network context, it's an irrecoverable error
   if (!active && networkError) {
     return (

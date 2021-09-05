@@ -16,7 +16,6 @@ export const useWFTMContract = () => {
     await window.ethereum.enable();
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
-    console.log(chainId, wftmAddress())
     const contract = new ethers.Contract(wftmAddress(), WFTM_ABI, signer);
 
     return contract;
@@ -24,7 +23,8 @@ export const useWFTMContract = () => {
 
   const getWFTMBalance = async address => {
     const contract = await getWFTMContract();
-    return await contract.balanceOf(address);
+    const balance = await contract.balanceOf(address)
+    return ethers.utils.formatEther(balance)
   };
 
   const wrapFTM = async (value, from) => {

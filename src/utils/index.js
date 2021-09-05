@@ -19,11 +19,14 @@ export function shortenAddress(address, chars = 4) {
   return `${parsed.substring(0, chars + 2)}...${parsed.substring(42 - chars)}`;
 }
 
-export const formatNumber = num => {
-  if (isNaN(num)) return '';
-  let parts = num.toString().split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts.join('.');
+export const formatBalance = num => {
+  var number = ethers.utils.formatEther(num)
+  number = parseFloat(number)
+  number = isNaN(number) ? 0 : number;
+  return number.toLocaleString('en-US', {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2
+  })
 };
 
 export const calculateGasMargin = value => {
