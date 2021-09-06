@@ -22,8 +22,8 @@ const VaultPageWrapper = styled.div`
 const VaultInfoWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
-	flex: 9;
-	margin-right: 120px;
+	flex: 173;
+	margin-right: 24px;
 `
 
 const OpenVault = styled.div`
@@ -49,22 +49,33 @@ const FTMImg = styled.img`
 `
 
 const Seperator = styled.div`
-	width: 100%;
-	border-bottom: 1px solid #787A9B;
-	opacity: 0.3;
+	border-bottom: 1px solid #F3F2FC;
+	margin-left: -30px;
+	margin-right: -30px;
+`
+
+const VerticalSeperator = styled.div`
+margin-top: 35px;
+border-left: 1px solid #F3F2FC;
 `
 
 const VaultConfigurationWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
-	flex: 5;
+	flex: 103;
+	
+	background: #FFFFFF;
+	border: 1px solid #F3F2FC;
+	box-sizing: border-box;
+	border-radius: 28px;
+	padding: 30px 25px;
 `
 
 const LiquidationCollateralWrapper = styled.div`
 	display:flex;
 	flex-direction: row;
 	justify-content: space-between;
-	margin-top: 64px;
+	margin-top: 32px;
 `
 
 const LiquidationPriceInfo = styled.div`
@@ -91,18 +102,17 @@ const InfoLabel = styled.div`
 `
 
 const InfoValue = styled.div`
-	font-family: Inter;
-	font-style: normal;
-	font-weight: bold;
-	font-size: 48px;
-	line-height: 58px;
-	/* identical to box height */
+font-family: Inter;
+font-style: normal;
+font-weight: bold;
+font-size: 48px;
+line-height: 58px;
 
+/* identical to box height */
 
-	/* black */
-
-	color: #26283E;
+color: #141D30;
 	text-align: left;
+	margin-top: 18px;
 `
 
 const PriceInfoWrapper = styled.div`
@@ -118,7 +128,7 @@ const CollateralWrapper = styled.div`
 const PriceCollateralWrapper = styled.div`
 display:flex;
 flex-direction: row;
-margin-top: 120px;
+margin-top: 90px;
 justify-content: space-between;
 `
 
@@ -165,6 +175,7 @@ line-height: 19px;
 
 color: #787A9B;
 text-align: left;
+margin-top: 10px;
 `
 
 const CollateralNumber = styled.div`
@@ -180,6 +191,7 @@ text-align: right;
 /* semiblack */
 
 color: #4A4C67;
+margin-top: 16px;
 `
 
 const CollateralPrice = styled.div`
@@ -201,7 +213,10 @@ margin-top: 24px;
 const VaultDetailsWrapper = styled.div`
 display:flex;
 flex-direction: column;
-margin-top: 80px;
+margin-top: 24px;
+background: #FFFFFF;
+box-shadow: 0px 15px 60px #F2F1FA;
+border-radius: 28px;
 `
 
 const VaultDetailsTitle = styled.div`
@@ -217,14 +232,12 @@ line-height: 22px;
 
 color: #26283E;
 text-align: left;
+padding: 30px;
+padding-bottom: 25px;
 `
 
 const VaultDetails = styled.div`
-border: 1px solid rgba(120, 122, 155, 0.3);
-box-sizing: border-box;
-border-radius: 8px;
-padding: 32px;
-margin-top: 16px;
+
 `
 
 const VaultDetailsRow = styled.div`
@@ -237,6 +250,10 @@ display: flex;
 flex-direction: column;
 justify-content: flex-start;
 text-align: left;
+padding: 30px;
+&:not(:last-child) {
+	border-right: 1px solid #F3F2FC;
+}
 `
 
 const VaultInfoTitle = styled.div`
@@ -280,18 +297,10 @@ margin-left: 4px;
 `
 
 const VaultRowSeperator = styled.div`
-	width: 100%;
-	border-bottom: 1px solid #787A9B;
-	opacity: 0.3;
-	margin: 32px 0;
+	border-bottom: 1px solid #F3F2FC;
 `
 
 const VaultConfigurator = styled.div`
-background: #FFFFFF;
-box-shadow: 0px 4px 8px rgba(38, 40, 62, 0.1);
-border-radius: 8px;
-padding: 32px;
-padding-bottom: 16px;
 text-align: left;
 `
 
@@ -305,6 +314,7 @@ line-height: 19px;
 /* black */
 
 color: #26283E;
+margin-bottom: 16px;
 `
 
 const VaultConfiguratorDescription = styled.p`
@@ -319,13 +329,13 @@ line-height: 140%;
 /* grey */
 
 color: #787A9B;
-margin-top: 8px;
+margin-top: 28px;
 `
 
 const DepositFTMTitleWrapper = styled.div`
 display: flex;
 flex-direction: row;
-margin-top: 32px;
+margin-top: 44px;
 justify-content: space-between;
 `
 
@@ -367,7 +377,7 @@ const DepositFTMInputWrapper = styled.div`
 	border-radius: 8px;
 	position: relative;
 	padding: 8px 16px;
-	margin-top: 8px;
+	margin-top: 12px;
 `
 
 const DepositFTMInput = styled.input`
@@ -421,7 +431,7 @@ font-style: normal;
 font-weight: 600;
 font-size: 16px;
 line-height: 19px;
-margin-top: 25px;
+margin-top: 36px;
 text-decoration: none;
 display: flex;
 flex-direction: row;
@@ -438,35 +448,34 @@ margin-right: 4px;
 `
 
 const SetupProxyButton = styled.button`
-  background: #26283E;
-  border-radius: 60px;
-  font-family: Proxima Nova;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 18px;
-  line-height: 22px;
-  /* identical to box height */
+font-family: Inter;
+font-style: normal;
+font-weight: bold;
+font-size: 16px;
+line-height: 19px;
+letter-spacing: -0.005em;
 
-  text-align: center;
-  padding: 14px 60px;
-  margin-top: 24px;
+color: #FFFFFF;
+
+background: #6764FF;
+border-radius: 60px;
+text-align: center;
+  padding: 18px 0px;
+  margin-top: 36px;
 	width: 100%;
   border: none;
   outline: none;
 
-  /* white */
-
-  color: #FFFFFF;
 	&:disabled {
 		opacity: 0.3;
 	}
 `
 
 const FUSDVaultInfoWrapper = styled.div`
-margin-top: 21px;
+margin-top: 39px;
 padding: 16px;
-background: rgba(155, 182, 231, 0.1);
-border-radius: 8px;
+background: rgba(228, 228, 242, 0.3);
+border-radius: 14px;
 `
 
 const FUSDVaultInfoRow = styled.div`
@@ -511,7 +520,7 @@ color: #26283E;
 const GenerateFUSDContainer = styled.div`
 display: flex;
 flex-direction: column;
-margin-top: 12px;
+margin-top: 36px;
 `
 
 const GenerateFUSDLabelRow = styled.div`
@@ -553,7 +562,7 @@ const GenerateFUSDInputWrapper = styled.div`
 	border-radius: 8px;
 	position: relative;
 	padding: 14px 16px;
-	margin-top: 8px;
+	margin-top: 12px;
 `
 
 const GenerateFUSDInput = styled.input`
@@ -574,16 +583,28 @@ outline: none;
 }
 `
 
+const VaultStatusWrapper = styled.div`
+background: #FFFFFF;
+box-shadow: 0px 15px 60px #F2F1FA;
+border-radius: 28px;
+padding: 30px;
+padding-bottom: 60px;
+`
+
 function Vault() {
 	const { account, chainId, error } = useWeb3React();
 	const [collateral, setCollateral] = useState(['', ''])
 	const [balance, setBalance] = useState([0, 0])
 	const [turnCollateral, setTurnCollateral] = useState(0)
-	const [generateFUSD, setGenerateFUSD] = useState(false)
+	const [showGenerateFUSD, setShowGenerateFUSD] = useState(false)
+	const [generateFUSD, setGenerateFUSD] = useState('')
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, wrapFTM, unwrapFTM } = useWFTMContract();
-	const collateralRatio = 1.5;
+	const collateralRatio = 300;
+	const liquidationRatio = 300;
+	const stabilityFee = 0;
+	const liquidationFee = 0;
 
 	const getBalance = async () => {
 		let ftmBalance = await getWFTMBalance(account)
@@ -604,6 +625,10 @@ function Vault() {
 		amount = isNaN(amount) ? '' : amount
 		collateralAmounts[turnCollateral] = amount + (value[value.length - 1] === '.' ? '.' : '')
 		collateralAmounts[oppositeCollateralCurrency()] = (turnCollateral ? (amount / price) : (amount * price))
+		if (amount === '' || amount === 0) {
+			setShowGenerateFUSD(false);
+			setGenerateFUSD('');
+		}
 		setCollateral([...collateralAmounts])
 	}
 
@@ -620,9 +645,13 @@ function Vault() {
 		})
 	}
 
-	const handleGenerateFUSD = (e) => {
-		const genreate = generateFUSD;
-		setGenerateFUSD(!genreate)
+	const handleShowGenerateFUSD = (e) => {
+		const show = showGenerateFUSD;
+		setShowGenerateFUSD(!show)
+	}
+
+	const handleGenerateFUSDChange = (e) => {
+		setGenerateFUSD(e.target.value)
 	}
 
 	useEffect(() => {
@@ -635,65 +664,69 @@ function Vault() {
 			<Header/>
 			<VaultPageWrapper>
 				<VaultInfoWrapper>
-					<OpenVault>
-						<FTMImg src={FTMIcon} />
-						Open FTM Vault
-					</OpenVault>
-					<Seperator />
-					<LiquidationCollateralWrapper>
-						<LiquidationPriceInfo>
-							<InfoLabel>
-								Liquidation price
-							</InfoLabel>
-							<InfoValue>
-								$0.00
-							</InfoValue>
-						</LiquidationPriceInfo>
-						<CollateralizationInfo>
-							<InfoLabel>
-								Collateralization ratio
-							</InfoLabel>
-							<InfoValue>
-								0.00%
-							</InfoValue>
-						</CollateralizationInfo>
-					</LiquidationCollateralWrapper>
-					<PriceCollateralWrapper>
-						<PriceInfoWrapper>
-							<CurrentPriceInfo>
-								<InfoLabel>Current FTM/USD price</InfoLabel>
-								<CurrentPrice>${formatNumber(price)}</CurrentPrice>
-							</CurrentPriceInfo>
-							<NextPriceInfo>
-								<InfoLabel>Next price in 10 minutes</InfoLabel>
-								<NextPrice>$0.24  (0.00%)</NextPrice>
-							</NextPriceInfo>
-						</PriceInfoWrapper>
-						<CollateralWrapper>
-							<CollateralNumberInfo>
-								<InfoLabel>Collateral locked</InfoLabel>
-								<CollateralNumber>{collateral[0] ? formatNumber(collateral[0]) : '--'}</CollateralNumber>
-							</CollateralNumberInfo>
-							<CollateralPrice>
-							${collateral[1] ? formatNumber(collateral[1]) : '--'}
-							</CollateralPrice>
-						</CollateralWrapper>
-					</PriceCollateralWrapper>
+					<VaultStatusWrapper>
+						<OpenVault>
+							<FTMImg src={FTMIcon} />
+							Open FTM Vault
+						</OpenVault>
+						<Seperator />
+						<LiquidationCollateralWrapper>
+							<LiquidationPriceInfo>
+								<InfoLabel>
+									Liquidation price
+								</InfoLabel>
+								<InfoValue>
+									$0.00
+								</InfoValue>
+							</LiquidationPriceInfo>
+							<VerticalSeperator/>
+							<CollateralizationInfo>
+								<InfoLabel>
+									Collateralization ratio
+								</InfoLabel>
+								<InfoValue>
+									0.00%
+								</InfoValue>
+							</CollateralizationInfo>
+						</LiquidationCollateralWrapper>
+						<PriceCollateralWrapper>
+							<PriceInfoWrapper>
+								<CurrentPriceInfo>
+									<InfoLabel>Current FTM/USD price</InfoLabel>
+									<CurrentPrice>${formatNumber(price)}</CurrentPrice>
+								</CurrentPriceInfo>
+								<NextPriceInfo>
+									<InfoLabel>Next price in 10 minutes</InfoLabel>
+									<NextPrice>$0.24  (0.00%)</NextPrice>
+								</NextPriceInfo>
+							</PriceInfoWrapper>
+							<CollateralWrapper>
+								<CollateralNumberInfo>
+									<InfoLabel>Collateral locked</InfoLabel>
+									<CollateralNumber>{collateral[0] ? formatNumber(collateral[0]) : '--'}</CollateralNumber>
+								</CollateralNumberInfo>
+								<CollateralPrice>
+								${collateral[1] ? formatNumber(collateral[1]) : '--'}
+								</CollateralPrice>
+							</CollateralWrapper>
+						</PriceCollateralWrapper>
+					</VaultStatusWrapper>
 					<VaultDetailsWrapper>
 						<VaultDetailsTitle>
 							Vault details
 						</VaultDetailsTitle>
 						<VaultDetails>
+							<VaultRowSeperator/>
 							<VaultDetailsRow>
 								<VaultDetailsInfoItem>
 									<VaultInfoTitle>
-									Vault fUSD Debt
+										Vault fUSD Debt
 									</VaultInfoTitle>
 									<VaultInfo>
-									0.00
-									<VaultUnit>
-									fUSD
-									</VaultUnit>
+										0.00
+										<VaultUnit>
+										fUSD
+										</VaultUnit>
 									</VaultInfo>
 								</VaultDetailsInfoItem>
 								<VaultDetailsInfoItem>
@@ -726,7 +759,7 @@ function Vault() {
 									Liquidation Ratio
 									</VaultInfoTitle>
 									<VaultInfo>
-									150%
+									{formatNumber(liquidationRatio)}%
 									</VaultInfo>
 								</VaultDetailsInfoItem>
 								<VaultDetailsInfoItem>
@@ -734,7 +767,7 @@ function Vault() {
 									Stability Fee
 									</VaultInfoTitle>
 									<VaultInfo>
-									2.00%
+									{formatNumber(stabilityFee)}%
 									</VaultInfo>
 								</VaultDetailsInfoItem>
 								<VaultDetailsInfoItem>
@@ -742,7 +775,7 @@ function Vault() {
 									Liquidation Penalty
 									</VaultInfoTitle>
 									<VaultInfo>
-									13%
+									{formatNumber(liquidationFee)}%
 									</VaultInfo>
 								</VaultDetailsInfoItem>
 							</VaultDetailsRow>
@@ -752,6 +785,7 @@ function Vault() {
 				<VaultConfigurationWrapper>
 					<VaultConfigurator>
 						<VaultConfiguratorTitle>Configure your Vault</VaultConfiguratorTitle>
+						<Seperator/>
 						<VaultConfiguratorDescription>
 						Simulate your vault by configuring the amount of collateral to deposit, and fUSD to generate.
 						</VaultConfiguratorDescription>
@@ -769,30 +803,29 @@ function Vault() {
 						</DepositFTMInputWrapper>
 						{
 							collateral[turnCollateral] !== '' &&
-							<GenerateFUSDButton onClick={handleGenerateFUSD}>
-								<GenrateFUSDPlusImg src={generateFUSD ? MinusIcon : PlusIcon} />
+							<GenerateFUSDButton onClick={handleShowGenerateFUSD}>
+								<GenrateFUSDPlusImg src={showGenerateFUSD ? MinusIcon : PlusIcon} />
 								Generate fUSD with this transaction
 							</GenerateFUSDButton>
 						}
 						{
-							generateFUSD &&
+							showGenerateFUSD &&
 							<GenerateFUSDContainer>
 								<GenerateFUSDLabelRow>
 									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax>Max {formatNumber(collateral[1] / collateralRatio)} fUSD</GenerateFUSDMax>
+									<GenerateFUSDMax>Max {formatNumber(collateral[1] * 100 / collateralRatio)} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
-									<GenerateFUSDInput placeholder={formatNumber(collateral[1] / collateralRatio) + ' fUSD'}>
-
+									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(collateral[1] * 100 / collateralRatio) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
 									</GenerateFUSDInput>
 								</GenerateFUSDInputWrapper>
 							</GenerateFUSDContainer>
 						}
-						{/* <SetupProxyButton disabled={collateral[turnCollateral] === ''}>
+						<SetupProxyButton disabled={generateFUSD === ''}>
 							{
-								collateral[turnCollateral] === '' ? 'Enter an amount' : 'Setup Proxy'
+								generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
 							}
-						</SetupProxyButton> */}
+						</SetupProxyButton>
 						{
 							collateral[turnCollateral] !== '' &&
 							<FUSDVaultInfoWrapper>
@@ -802,19 +835,19 @@ function Vault() {
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>{collateralRatio * 100}%</FUSDVaultInfo>
+									<FUSDVaultInfo>{formatNumber(collateralRatio)}%</FUSDVaultInfo>
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>2.00%</FUSDVaultInfo>
+									<FUSDVaultInfo>{formatNumber(stabilityFee)}%</FUSDVaultInfo>
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Liquidation Fee</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>13%</FUSDVaultInfo>
+									<FUSDVaultInfo>{formatNumber(liquidationFee)}%</FUSDVaultInfo>
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Dust Limit</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>1,000.00 fUSD</FUSDVaultInfo>
+									<FUSDVaultInfo>--</FUSDVaultInfo>
 								</FUSDVaultInfoRow>
 							</FUSDVaultInfoWrapper>
 						}

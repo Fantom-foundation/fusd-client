@@ -45,24 +45,24 @@ export default function Web3ReactManager({ children }) {
   }
 
   // if the account context isn't active, and there's an error on the network context, it's an irrecoverable error
-  if (!active && networkError) {
-    return (
-      <div className="flex items-center justify-center h-80">
-        <div className="text-secondary">
-          {`Oops! An unknown error occurred. Please refresh the page, or visit from another browser or device`}
-        </div>
-      </div>
-    );
-  }
+  // if (!active && networkError) {
+  //   return (
+  //     <div className="flex items-center justify-center h-80">
+  //       <div className="text-secondary">
+  //         {`Oops! An unknown error occurred. Please refresh the page, or visit from another browser or device`}
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // if neither context is active, spin
-  if (!active && !networkActive) {
-    return showLoader ? (
-      <div className="flex item s-center justify-center h-80">
-        <Loader />
-      </div>
-    ) : null;
-  }
+  // if (!active && !networkActive) {
+  //   return showLoader ? (
+  //     <div className="flex item s-center justify-center h-80">
+  //       <Loader />
+  //     </div>
+  //   ) : null;
+  // }
 
   return children;
 }

@@ -23,6 +23,7 @@ const LogoContainer = styled.div`
   font-weight: bold;
   font-size: 24px;
   line-height: 28px;
+  cursor: pointer;
 
   /* black */
 
@@ -30,21 +31,21 @@ const LogoContainer = styled.div`
 `
 
 const HeaderConnectWalletButton = styled.button`
-  font-family: Proxima Nova;
+  font-family: Inter;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 16px;
   line-height: 19px;
+  letter-spacing: -0.015em;
 
-  /* black */
+  color: #141D30;
 
-  color: #26283E;
+  padding: 15px 30px 15px 40px;
   background: #FFFFFF;
+  box-shadow: 2px 15px 40px 2px #EDF0F4;
   border-radius: 60px;
   border: none;
   outline: none;
-  display: flex;
-  align-items: center;
 
   &:disabled {
     cursor: not-allowed;
@@ -77,7 +78,7 @@ const HeaderButton = styled.button`
   outline: none;
   display: flex;
   align-items: center;
-  margin: 0 20px;
+  margin-right: 40px;
 
   &:disabled {
     cursor: not-allowed;
@@ -256,14 +257,14 @@ function Header() {
   
   return (
     <div className="App-header">
-      <LogoContainer>
+      <LogoContainer onClick={() => history.push("/")}>
         <LogoImg src={LogoIcon}></LogoImg>
       </LogoContainer>
       {
         active ? 
         <HeaderButtonsContainer>
           <HeaderButton>
-            My Vault
+            My vaults
           </HeaderButton>
           <HeaderButton>
             Open a new vault

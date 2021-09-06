@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
-import RightArrowIcon from '../../assets/icons/right_arrow_white.svg'
+import RightArrowIcon from '../../assets/icons/right_arrow.svg'
 
 const PageBodyText = styled.div`
   font-family: Proxima Nova;
@@ -23,28 +23,20 @@ const PageBodyText = styled.div`
 `
 
 const ConnectWalletButton = styled.button`
-  background: #26283E;
-  border-radius: 60px;
-  font-family: Proxima Nova;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 18px;
-  line-height: 22px;
-  /* identical to box height */
+font-family: Inter;
+font-style: normal;
+font-weight: 500;
+font-size: 16px;
+line-height: 19px;
+letter-spacing: -0.015em;
 
-  text-align: center;
-  padding: 14px 60px;
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 64px;
-  border: none;
-  outline: none;
-
-  /* white */
-
-  color: #FFFFFF;
+color: #141D30;
+background: #FFFFFF;
+border-radius: 60px;
+padding: 15px 20px 15px 30px;
+border: none;
+outline: none;
+margin-top: 45px;
 `
 
 const RightArrowImg = styled.img`

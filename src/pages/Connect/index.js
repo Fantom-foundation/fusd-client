@@ -1,13 +1,36 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { ethers } from 'ethers'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core';
+import styled from 'styled-components'
 import WalletConnectActions from '../../actions/walletconnect.actions'
 import { DestNet } from '../../constants/walletconnection'
 import { SUPPORTED_WALLETS } from '../../constants/wallet';
 import './style.css'
 
+const ConnectPageContentWrapper = styled.div`
+background: rgba(255, 255, 255, 0.4);
+backdrop-filter: blur(40px);
+
+/* Note: backdrop-filter has minimal browser support */
+border-radius: 36px;
+padding: 150px 170px;
+margin-top: 100px;
+`
+
+const ConnectOption = styled.div`
+background-color: white;
+  border-radius: 16px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #D1DEE6;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  padding: 16px;
+  margin: 8px;
+`
 
 function Connect() {
   const { activate, active, connector, error, deactivate } = useWeb3React();
@@ -16,12 +39,12 @@ function Connect() {
 
   const Option = ({ onClick = null, header, icon, active = false }) => {
     return (
-      <div
+      <ConnectOption
         onClick={onClick}
       >
         <div>{header}</div>
         <img src={icon}/>
-      </div>
+      </ConnectOption>
     );
   };
 
@@ -61,14 +84,23 @@ function Connect() {
           activate(conn); // a little janky...can't use setError because the connector isn't set
         }
       });
+      
   };
-console.log(error)
+
+  useEffect(() => {
+    if (active === true) {
+      history.push('/')
+    }
+  }, [active])
+
 	return (
 		<div>
-			<h1 className="page-title">Connect a wallet</h1>
-			<div className="wallets-container">
-        {getOptions()}
-			</div>
+      <ConnectPageContentWrapper>
+        <h1 className="page-title">Connect a wallet</h1>
+        <div className="wallets-container">
+          {getOptions()}
+        </div>
+      </ConnectPageContentWrapper>
 		</div>
 	);
 }
