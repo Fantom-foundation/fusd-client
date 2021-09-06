@@ -120,7 +120,7 @@ height: 40px;
 margin: 0 4px;
 
 color: #0649AC;
-padding: 8px;
+padding: 6px;
 `
 
 const AccountBalanceSpan = styled.span`
@@ -227,15 +227,6 @@ function Header() {
     // login();
   };
 
-  useEffect(() => {
-    if (account) {
-      init();
-      getBalance();
-    } else {
-      handleSignOut();
-    }
-  }, [account, chainId]);
-
   const handleConnectWallet = () => {
     activate(injected, undefined, true)
       .then(() => {
@@ -248,6 +239,15 @@ function Header() {
         }
       });
   };
+
+  useEffect(() => {
+    if (account) {
+      init();
+      getBalance();
+    } else {
+      handleSignOut();
+    }
+  }, [account, chainId]);
 
   const handleSignOut = () => {
     dispatch(WalletConnectActions.disconnectWallet());

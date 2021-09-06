@@ -10,7 +10,8 @@ import MinusIcon from '../../assets/icons/minus.svg'
 import { urls } from '../../constants/urls'
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import { useWFTMContract } from '../../contracts';
+import { useWFTMContract, useFMintContract } from '../../contracts';
+import { FMINT_CONTRACT_ADDRESS, FUSD_CONTRACT_ADDRESS, WFTM_CONTRACT_ADDRESS } from '../../constants/walletconnection'
 import BigNumber from "bignumber.js";
 
 const VaultPageWrapper = styled.div`
@@ -39,7 +40,7 @@ line-height: 22px;
 
 color: #26283E;
 display: flex;
-margin-bottom: 16px;
+margin-bottom: 20px;
 `
 
 const FTMImg = styled.img`
@@ -99,20 +100,28 @@ const InfoLabel = styled.div`
 
 	color: #787A9B;
 	text-align: left;
+
+	&.text-right {
+		text-align: right;
+	}
 `
 
 const InfoValue = styled.div`
-font-family: Inter;
-font-style: normal;
-font-weight: bold;
-font-size: 48px;
-line-height: 58px;
+	font-family: Inter;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 48px;
+	line-height: 58px;
 
-/* identical to box height */
+	/* identical to box height */
 
-color: #141D30;
+	color: #141D30;
 	text-align: left;
 	margin-top: 18px;
+
+&.text-right {
+	text-align: right;
+}
 `
 
 const PriceInfoWrapper = styled.div`
@@ -314,7 +323,7 @@ line-height: 19px;
 /* black */
 
 color: #26283E;
-margin-bottom: 16px;
+margin-bottom: 20px;
 `
 
 const VaultConfiguratorDescription = styled.p`
@@ -424,7 +433,7 @@ const DepositFTMSwapImg = styled.img`
 	cursor: pointer;
 `
 
-const GenerateFUSDButton = styled.div`
+const ShowGenerateFUSDButton = styled.div`
 cursor: pointer;
 font-family: Proxima Nova;
 font-style: normal;
@@ -447,7 +456,7 @@ height: 20px;
 margin-right: 4px;
 `
 
-const SetupProxyButton = styled.button`
+const GenerateFUSDButton = styled.button`
 font-family: Inter;
 font-style: normal;
 font-weight: bold;
@@ -598,10 +607,12 @@ function Vault() {
 	const [turnCollateral, setTurnCollateral] = useState(0)
 	const [showGenerateFUSD, setShowGenerateFUSD] = useState(false)
 	const [generateFUSD, setGenerateFUSD] = useState('')
+	const [generating, setGenerating] = useState(false)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
-	const { getWFTMBalance, wrapFTM, unwrapFTM } = useWFTMContract();
-	const collateralRatio = 300;
+	const { getWFTMBalance, increaseAllowance } = useWFTMContract();
+	const { mustDeposit, mustMint } = useFMintContract();
+	const minCollateralRatio = 300;
 	const liquidationRatio = 300;
 	const stabilityFee = 0;
 	const liquidationFee = 0;
@@ -654,8 +665,41 @@ function Vault() {
 		setGenerateFUSD(e.target.value)
 	}
 
-	useEffect(() => {
+	const collateralRatio = () => {
+		return generateFUSD === '' ? 0 : collateral[1] * 100 / generateFUSD;
+	}
+
+	const handleGenerateFUSD = async () => {
+		setGenerating(true)
+		const decimals = BigNumber('10').pow(18)
+		const depositAmount = BigNumber(collateral[0]).multipliedBy(decimals)
+		try {
+			await increaseAllowance(FMINT_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+			await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+			const fusdAmount = BigNumber(generateFUSD).multipliedBy(decimals)
+			await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
+			initialize()
+		} catch (error) {
+			setGenerating(false)
+			console.log(error)
+		}
+	}
+
+	const initialize = () => {
+		setCollateral(['', ''])
+		setTurnCollateral(0)
+		setShowGenerateFUSD(false)
+		setGenerateFUSD('')
+		setGenerating(false)
 		getBalance();
+	}
+
+	useEffect(() => {
+		try {
+			getBalance();
+		} catch (error) {
+			console.log(error)
+		}
 		// setTimeout(() => getBalance(), 1000)
 	}, [chainId, price])
 
@@ -681,11 +725,11 @@ function Vault() {
 							</LiquidationPriceInfo>
 							<VerticalSeperator/>
 							<CollateralizationInfo>
-								<InfoLabel>
+								<InfoLabel className="text-right">
 									Collateralization ratio
 								</InfoLabel>
-								<InfoValue>
-									0.00%
+								<InfoValue className="text-right">
+									{formatNumber(collateralRatio())}%
 								</InfoValue>
 							</CollateralizationInfo>
 						</LiquidationCollateralWrapper>
@@ -803,29 +847,29 @@ function Vault() {
 						</DepositFTMInputWrapper>
 						{
 							collateral[turnCollateral] !== '' &&
-							<GenerateFUSDButton onClick={handleShowGenerateFUSD}>
+							<ShowGenerateFUSDButton onClick={handleShowGenerateFUSD}>
 								<GenrateFUSDPlusImg src={showGenerateFUSD ? MinusIcon : PlusIcon} />
 								Generate fUSD with this transaction
-							</GenerateFUSDButton>
+							</ShowGenerateFUSDButton>
 						}
 						{
 							showGenerateFUSD &&
 							<GenerateFUSDContainer>
 								<GenerateFUSDLabelRow>
 									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax>Max {formatNumber(collateral[1] * 100 / collateralRatio)} fUSD</GenerateFUSDMax>
+									<GenerateFUSDMax>Max {formatNumber(collateral[1] * 100 / minCollateralRatio)} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
-									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(collateral[1] * 100 / collateralRatio) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
+									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(collateral[1] * 100 / minCollateralRatio) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
 									</GenerateFUSDInput>
 								</GenerateFUSDInputWrapper>
 							</GenerateFUSDContainer>
 						}
-						<SetupProxyButton disabled={generateFUSD === ''}>
+						<GenerateFUSDButton disabled={generateFUSD === '' || generating} onClick={() => handleGenerateFUSD()}>
 							{
 								generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
 							}
-						</SetupProxyButton>
+						</GenerateFUSDButton>
 						{
 							collateral[turnCollateral] !== '' &&
 							<FUSDVaultInfoWrapper>
@@ -835,7 +879,7 @@ function Vault() {
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>{formatNumber(collateralRatio)}%</FUSDVaultInfo>
+									<FUSDVaultInfo>{formatNumber(minCollateralRatio)}%</FUSDVaultInfo>
 								</FUSDVaultInfoRow>
 								<FUSDVaultInfoRow>
 									<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>

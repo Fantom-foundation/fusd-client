@@ -56,6 +56,13 @@ export const useWFTMContract = () => {
     await tx.wait();
   };
 
+  const increaseAllowance = async (address, value) => {
+    const contract = await getWFTMContract();
+    const tx = await contract.increaseAllowance(address, value);
+    await tx.wait();
+    return tx;
+  };
+
   return {
     wftmAddress,
     getWFTMBalance,
@@ -63,5 +70,6 @@ export const useWFTMContract = () => {
     unwrapFTM,
     getAllowance,
     approve,
+    increaseAllowance,
   };
 };

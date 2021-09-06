@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useWeb3React } from '@web3-react/core';
 import Loader from '../Loader';
 import { NetworkContextName } from '../../constants';
 import { network } from '../../connectors';
 import useEagerConnect from '../../hooks/useEagerConnect';
 import useInactiveListener from '../../hooks/useInactiveListener';
-import { useWeb3React } from '@web3-react/core';
+import { DestNet } from '../../constants/walletconnection'
 
 export default function Web3ReactManager({ children }) {
-  const { active } = useWeb3React();
+  const { active, chainId } = useWeb3React();
   const {
     active: networkActive,
     error: networkError,
@@ -43,6 +44,16 @@ export default function Web3ReactManager({ children }) {
   if (!triedEager) {
     return null;
   }
+
+  // if (chainId !== DestNet.ChainID) {
+  //   return (
+  //     <div className="flex items-center justify-center h-80">
+  //       <div className="text-secondary">
+  //         {`Please connect to the fantom testnet`}
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // if the account context isn't active, and there's an error on the network context, it's an irrecoverable error
   // if (!active && networkError) {
