@@ -266,7 +266,7 @@ function Header() {
           <HeaderButton>
             My vaults
           </HeaderButton>
-          <HeaderButton>
+          <HeaderButton onClick={e => history.push('/vault')}>
             Open a new vault
           </HeaderButton>
           <WalletInfo>
