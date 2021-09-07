@@ -3,7 +3,6 @@
   max-width: 1440px;
   padding: 0 156px;
   margin: auto;
-  height: 100vh;
 }
 
 .App-logo {
@@ -52,4 +51,12 @@
   /* black */
 
   color: #26283E; 
+  word-break: break-word;
+}
+
+@media screen and (max-width: 1024px) {
+  .App {
+    max-width: unset;
+    padding: 0 30px;
+  }
 }

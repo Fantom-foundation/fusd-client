@@ -84,6 +84,10 @@ const HeaderButton = styled.button`
     cursor: not-allowed;
     opacity: .6;
   }
+
+  @media screen and (max-width: 768px) {
+    display: none;
+  }
 `
 
 const WalletInfo = styled.div`
@@ -150,6 +154,9 @@ const LogoImg = styled.img`
 
 const WalletAddress = styled.span`
   margin: 0 16px;
+  @media screen and (max-width: 360px) {
+    display: none;
+  }
 `
 
 const ENV = process.env.REACT_APP_ENV;

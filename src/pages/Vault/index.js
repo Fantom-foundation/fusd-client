@@ -18,6 +18,9 @@ const VaultPageWrapper = styled.div`
 	margin: 20px 0;
 	display: flex;
 	flex-direction: row;
+	@media screen and (max-width: 1200px) {
+		flex-direction: column;
+	}
 `
 
 const VaultInfoWrapper = styled.div`
@@ -25,6 +28,9 @@ const VaultInfoWrapper = styled.div`
 	flex-direction: column;
 	flex: 173;
 	margin-right: 24px;
+	@media screen and (max-width: 1200px) {
+		margin-right: 0;
+	}
 `
 
 const OpenVault = styled.div`
@@ -70,6 +76,10 @@ const VaultConfigurationWrapper = styled.div`
 	box-sizing: border-box;
 	border-radius: 28px;
 	padding: 30px 25px;
+
+	@media screen and (max-width: 1200px) {
+		margin-top: 36px;
+	}
 `
 
 const LiquidationCollateralWrapper = styled.div`

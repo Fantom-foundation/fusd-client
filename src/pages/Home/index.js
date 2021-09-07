@@ -54,6 +54,13 @@ backdrop-filter: blur(40px);
 border-radius: 36px;
 padding: 150px 170px;
 margin-top: 100px;
+
+@media screen and (max-width: 768px) {
+  padding: 50px 70px;
+}
+@media screen and (max-width: 576px) {
+  padding: 25px 35px;
+}
 `
 
 function Home() {
