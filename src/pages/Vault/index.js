@@ -122,6 +122,18 @@ const InfoValue = styled.div`
 &.text-right {
 	text-align: right;
 }
+
+&.low {
+	color: #FF5252;
+}
+
+&.mid {
+	color: #FF9839;
+}
+
+&.high {
+	color: #11D0A2;
+}
 `
 
 const PriceInfoWrapper = styled.div`
@@ -669,6 +681,18 @@ function Vault() {
 		return generateFUSD === '' ? 0 : collateral[1] * 100 / generateFUSD;
 	}
 
+	const collateralStyleClass = (collateralRatio) => {
+		if (collateralRatio === '' || collateralRatio === 0) {
+			return ''
+		} else if (collateralRatio < 200) {
+			return 'low'
+		} else if (collateralRatio < 500) {
+			return 'mid'
+		} else {
+			return 'high'
+		}
+	}
+
 	const handleGenerateFUSD = async () => {
 		setGenerating(true)
 		const decimals = BigNumber('10').pow(18)
@@ -728,7 +752,7 @@ function Vault() {
 								<InfoLabel className="text-right">
 									Collateralization ratio
 								</InfoLabel>
-								<InfoValue className="text-right">
+								<InfoValue className={"text-right " + `${collateralStyleClass(collateralRatio())}`}>
 									{formatNumber(collateralRatio())}%
 								</InfoValue>
 							</CollateralizationInfo>
