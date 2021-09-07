@@ -45,15 +45,15 @@ export default function Web3ReactManager({ children }) {
     return null;
   }
 
-  // if (chainId !== DestNet.ChainID) {
-  //   return (
-  //     <div className="flex items-center justify-center h-80">
-  //       <div className="text-secondary">
-  //         {`Please connect to the fantom testnet`}
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (chainId !== undefined && chainId !== DestNet.ChainID) {
+    return (
+      <div className="flex items-center justify-center h-80">
+        <div className="text-secondary">
+          {`Please connect to the fantom testnet`}
+        </div>
+      </div>
+    );
+  }
 
   // if the account context isn't active, and there's an error on the network context, it's an irrecoverable error
   // if (!active && networkError) {
