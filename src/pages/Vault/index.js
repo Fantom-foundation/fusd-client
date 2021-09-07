@@ -78,7 +78,7 @@ const VaultConfigurationWrapper = styled.div`
 	padding: 30px 25px;
 
 	@media screen and (max-width: 1200px) {
-		margin-top: 36px;
+		margin-top: 24px;
 	}
 `
 
@@ -87,6 +87,7 @@ const LiquidationCollateralWrapper = styled.div`
 	flex-direction: row;
 	justify-content: space-between;
 	margin-top: 32px;
+	flex-wrap: wrap;
 `
 
 const LiquidationPriceInfo = styled.div`
@@ -274,6 +275,14 @@ const VaultDetails = styled.div`
 const VaultDetailsRow = styled.div`
 display: grid;
 grid-template-columns: repeat(3, 1fr);
+border-top: 1px solid #F3F2FC;
+@media screen and (max-width: 576px) {
+	display: flex;
+	flex-direction: column;
+	&:not(:first-child) {
+		border-top: none;
+	}
+}
 `
 
 const VaultDetailsInfoItem = styled.div`
@@ -284,6 +293,12 @@ text-align: left;
 padding: 30px;
 &:not(:last-child) {
 	border-right: 1px solid #F3F2FC;
+}
+@media screen and (max-width: 576px) {
+	border-bottom: 1px solid #F3F2FC;
+	&:not(:last-child) {
+		border-right: none;
+	}
 }
 `
 
@@ -329,6 +344,9 @@ margin-left: 4px;
 
 const VaultRowSeperator = styled.div`
 	border-bottom: 1px solid #F3F2FC;
+	@media screen and (max-width: 576px) {
+		border-bottom: none;
+	}
 `
 
 const VaultConfigurator = styled.div`
@@ -490,7 +508,8 @@ color: #FFFFFF;
 
 background: #6764FF;
 border-radius: 60px;
-text-align: center;
+display: flex;
+    justify-content: center;
   padding: 18px 0px;
   margin-top: 36px;
 	width: 100%;
@@ -499,6 +518,12 @@ text-align: center;
 
 	&:disabled {
 		opacity: 0.3;
+	}
+
+	@media screen and (max-width: 1200px) {
+		max-width: 360px;
+		margin-left: auto;
+		margin-right: auto;
 	}
 `
 
@@ -794,7 +819,6 @@ function Vault() {
 							Vault details
 						</VaultDetailsTitle>
 						<VaultDetails>
-							<VaultRowSeperator/>
 							<VaultDetailsRow>
 								<VaultDetailsInfoItem>
 									<VaultInfoTitle>
@@ -830,7 +854,7 @@ function Vault() {
 									</VaultInfo>
 								</VaultDetailsInfoItem>
 							</VaultDetailsRow>
-							<VaultRowSeperator/>
+							
 							<VaultDetailsRow>
 								<VaultDetailsInfoItem>
 									<VaultInfoTitle>

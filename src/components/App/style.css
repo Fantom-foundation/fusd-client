@@ -3,6 +3,7 @@
   max-width: 1440px;
   padding: 0 156px;
   margin: auto;
+  min-height: 100vh;
 }
 
 .App-logo {
