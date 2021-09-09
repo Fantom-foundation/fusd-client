@@ -847,7 +847,7 @@ function Vault() {
 									Available to Generate
 									</VaultInfoTitle>
 									<VaultInfo>
-									{formatNumber(collateral[1] / 1.5)}
+									{formatNumber(collateral[1] * 100 / minCollateralRatio)}
 									<VaultUnit>
 									USD
 									</VaultUnit>
