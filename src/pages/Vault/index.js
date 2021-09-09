@@ -608,6 +608,7 @@ line-height: 17px;
 text-align: right;
 
 color: #9C9BBC;
+cursor: pointer;
 `
 
 const GenerateFUSDInputWrapper = styled.div`
@@ -915,7 +916,7 @@ function Vault() {
 							<GenerateFUSDContainer>
 								<GenerateFUSDLabelRow>
 									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax>Max {formatNumber(collateral[1] * 100 / minCollateralRatio)} fUSD</GenerateFUSDMax>
+									<GenerateFUSDMax onClick={() => setGenerateFUSD(collateral[1] * 100 / minCollateralRatio)}>Max {formatNumber(collateral[1] * 100 / minCollateralRatio)} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
 									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(collateral[1] * 100 / minCollateralRatio) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
