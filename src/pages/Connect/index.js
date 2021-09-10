@@ -1,78 +1,106 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
+import { useHistory } from 'react-router-dom'
 import { ethers } from 'ethers'
+import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core';
+import styled from 'styled-components'
 import WalletConnectActions from '../../actions/walletconnect.actions'
+import { DestNet } from '../../constants/walletconnection'
+import { SUPPORTED_WALLETS } from '../../constants/wallet';
 import './style.css'
 
+const ConnectPageContentWrapper = styled.div`
+background: rgba(255, 255, 255, 0.4);
+backdrop-filter: blur(40px);
+
+/* Note: backdrop-filter has minimal browser support */
+border-radius: 36px;
+padding: 150px 170px;
+margin-top: 100px;
+`
+
+const ConnectOption = styled.div`
+background-color: white;
+  border-radius: 16px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #D1DEE6;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  padding: 16px;
+  margin: 8px;
+`
+
 function Connect() {
+  const { activate, active, connector, error, deactivate } = useWeb3React();
 	const dispatch = useDispatch()
+  const history = useHistory()
 
-	const connectMetamask = async () => {
-    if (window.ethereum === undefined) {
-      return;
-    }
-    await window.ethereum.enable();
-    //   handle network change & disconnect here
-    window.ethereum.on('chainChanged', (_chainId) => {
-      //   handle chainId change
-      dispatch(WalletConnectActions.changeChainId(_chainId))
-      dispatch(WalletConnectActions.setAccount(''))
-      console.log('chainid is changed to ', _chainId)
-    })
-    window.ethereum.on('disconnect', (error) => {
-      //   handle disconnect
-      dispatch(WalletConnectActions.disconnectWallet())
-      dispatch(WalletConnectActions.setAccount(''))
-      console.log('handler for disconnection', error)
-    })
-    window.ethereum.on('accountsChanged', (accounts) => {
-      if (accounts.length === 0) {
-        // handle when no account is connected
-        dispatch(WalletConnectActions.disconnectWallet())
-        console.log('disconnected')
+  const Option = ({ onClick = null, header, icon, active = false }) => {
+    return (
+      <ConnectOption
+        onClick={onClick}
+      >
+        <div>{header}</div>
+        <img src={icon}/>
+      </ConnectOption>
+    );
+  };
+
+  const getOptions = () => {
+    return Object.keys(SUPPORTED_WALLETS).map(key => {
+      const option = SUPPORTED_WALLETS[key];
+
+      return (
+        <Option
+          onClick={() => {
+            return option.connector === connector
+              ? null
+              : tryActivation(option.connector);
+          }}
+          key={key}
+          active={option.connector === connector}
+          header={option.name}
+          icon={option.icon}
+        />
+      );
+    });
+  };
+
+  const tryActivation = async connector => {
+    let conn = typeof connector === 'function' ? await connector() : connector;
+
+    Object.keys(SUPPORTED_WALLETS).map(key => {
+      if (connector === SUPPORTED_WALLETS[key].connector) {
+        return SUPPORTED_WALLETS[key].name;
       }
-    })
-    let provider = new ethers.providers.Web3Provider(window.ethereum)
-    let chainId = (await provider.getNetwork()).chainId
-    let accounts = await provider.listAccounts()
-    let account = accounts[0]
-    dispatch(WalletConnectActions.setAccount(account))
-    return chainId
-  }
+      return true;
+    });
 
-	const handleWalletConnect = async () => {
-    if (isConnected) {
-      dispatch(WalletConnectActions.setAccount(''))
-      dispatch(WalletConnectActions.disconnectWallet())
-      // handle disconnect here
-    } else {
-      // handle connect here
-      let chainId = await connectMetamask()
-      if (chainId !== 1001) {
-        console.log('not connected to Opera Network')
-        dispatch(WalletConnectActions.connectWallet(chainId))
-      } else {
-        console.log('connected')
-        dispatch(WalletConnectActions.connectWallet(chainId))
-      }
+    conn &&
+      activate(conn).catch(error => {
+        if (error instanceof UnsupportedChainIdError) {
+          activate(conn); // a little janky...can't use setError because the connector isn't set
+        }
+      });
+      
+  };
+
+  useEffect(() => {
+    if (active === true) {
+      history.push('/')
     }
-  }
-
-  const isConnected = useSelector((state) => state.ConnectWallet.isConnected)
+  }, [active])
 
 	return (
 		<div>
-			<h1 className="page-title">Connect a wallet</h1>
-			<div className="wallets-container">
-				<button className="wallet-title" onClick={handleWalletConnect}>MetaMask</button>
-				<button className="wallet-title">WalletConnect</button>
-				<button className="wallet-title">Coinbase wallet</button>
-				<button className="wallet-title">Portis wallet</button>
-				<button className="wallet-title">My Ether Wallet</button>
-				<button className="wallet-title">Trezor</button>
-				<button className="wallet-title">Gnosis Safe</button>
-				<button className="wallet-title">Ledger</button>
-			</div>
+      <ConnectPageContentWrapper>
+        <h1 className="page-title">Connect a wallet</h1>
+        <div className="wallets-container">
+          {getOptions()}
+        </div>
+      </ConnectPageContentWrapper>
 		</div>
 	);
 }

@@ -1,5 +1,9 @@
 .App {
   text-align: center;
+  max-width: 1440px;
+  padding: 0 156px;
+  margin: auto;
+  min-height: 100vh;
 }
 
 .App-logo {
@@ -14,11 +18,12 @@
 }
 
 .App-header {
-  min-height: 100vh;
+  height: 100px;
+  padding: 35px 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   font-size: calc(10px + 2vmin);
   color: white;
 }
@@ -43,9 +48,16 @@
   font-size: 40px;
   line-height: 47px;
   /* identical to box height */
-  margin: 30px 0;
 
   /* black */
 
   color: #26283E; 
+  word-break: break-word;
+}
+
+@media screen and (max-width: 1024px) {
+  .App {
+    max-width: unset;
+    padding: 0 30px;
+  }
 }
