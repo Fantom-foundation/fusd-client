@@ -20,15 +20,13 @@ const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName);
 
 ReactDOM.render(
   <Provider store={store}>
-    <React.StrictMode>
-      <Web3ReactProvider getLibrary={getLibrary}>
-        <Web3ProviderNetwork getLibrary={getLibrary}>
-          <Web3ReactManager>
-            <App />
-          </Web3ReactManager>
-        </Web3ProviderNetwork>
-      </Web3ReactProvider>
-    </React.StrictMode>
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <Web3ProviderNetwork getLibrary={getLibrary}>
+        <Web3ReactManager>
+          <App />
+        </Web3ReactManager>
+      </Web3ProviderNetwork>
+    </Web3ReactProvider>
   </Provider>,
   document.getElementById('root')
 );

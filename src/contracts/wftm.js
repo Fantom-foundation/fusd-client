@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { ethers } from 'ethers';
 
-import { useDispatch, useSelector } from 'react-redux'
 import { useWeb3React } from '@web3-react/core';
 import { WFTM_ABI } from './abi';
 import { calculateGasMargin } from '../utils';
