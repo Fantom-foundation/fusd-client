@@ -10,6 +10,7 @@ import Home from '../../pages/Home'
 import Connect from '../../pages/Connect'
 import Account from '../../pages/Account'
 import Vault from '../../pages/Vault'
+import Vaults from '../../pages/Vaults'
 import { ChainIDs } from '../../constants/walletconnection'
 import { useWeb3React } from '@web3-react/core';
 import PriceActions from '../../actions/price.actions';
@@ -74,6 +75,9 @@ function App() {
           </Route>
           <Route path="/vault">
             <Vault />
+          </Route>
+					<Route path="/vaults">
+            <Vaults />
           </Route>
           <Route path="/">
             <Home />

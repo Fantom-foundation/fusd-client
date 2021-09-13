@@ -521,7 +521,7 @@ function Header() {
         active ? 
         <>
           <HeaderButtonsContainer>
-            <HeaderButton>
+            <HeaderButton onClick={e => history.push('/vaults')}>
               My vaults
             </HeaderButton>
             <HeaderButton onClick={e => history.push('/vault')}>

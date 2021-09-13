@@ -65,7 +65,7 @@ margin-top: 100px;
 
 function Home() {
   let history = useHistory()
-  const { active, account, chainId } = useWeb3React();
+  const { active } = useWeb3React();
 
   return (
       <div>
