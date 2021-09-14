@@ -62,6 +62,16 @@ export const useWFTMContract = () => {
     return tx;
   };
 
+  const wftmDecimals = async () => {
+    const contract = await getWFTMContract();
+    return contract.decimals();
+  }
+
+  const wftmSymbol = async () => {
+    const contract = await getWFTMContract();
+    return contract.symbol();
+  }
+
   return {
     wftmAddress,
     getWFTMBalance,
@@ -70,5 +80,7 @@ export const useWFTMContract = () => {
     getAllowance,
     approve,
     increaseAllowance,
+    wftmDecimals,
+    wftmSymbol,
   };
 };

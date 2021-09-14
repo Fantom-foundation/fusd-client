@@ -416,6 +416,7 @@ text-align: right;
 /* grey */
 
 color: #787A9B;
+cursor: pointer;
 `
 
 const DepositFTMInputWrapper = styled.div`
@@ -658,7 +659,7 @@ function Vault() {
 	const [generating, setGenerating] = useState(false)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
-	const { getWFTMBalance, increaseAllowance } = useWFTMContract();
+	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
 	const { mustDeposit, mustMint } = useFMintContract();
 	const minCollateralRatio = 300;
 	const liquidationRatio = 300;
@@ -754,13 +755,44 @@ function Vault() {
 		getBalance();
 	}
 
+	const addWFTMToken = async () => {
+    const tokenAddress = WFTM_CONTRACT_ADDRESS[chainId];
+		const tokenSymbol = await wftmSymbol();
+		const tokenDecimals = await wftmDecimals();
+		const tokenImage = '';
+
+		try {
+			// wasAdded is a boolean. Like any RPC method, an error may be thrown.
+			const { ethereum } = window
+			const wasAdded = await ethereum.request({
+				method: 'wallet_watchAsset',
+				params: {
+					type: 'ERC20', // Initially only supports ERC20, but eventually more!
+					options: {
+						address: tokenAddress, // The address that the token is at.
+						symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+						decimals: tokenDecimals, // The number of decimals in the token
+						image: tokenImage, // A string url of the token logo
+					},
+				},
+			});
+
+			if (wasAdded) {
+				console.log('WFTM token added!');
+			} else {
+				console.log('Not added!');
+			}
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
 	useEffect(() => {
 		try {
 			getBalance();
 		} catch (error) {
 			console.log(error)
 		}
-		// setTimeout(() => getBalance(), 1000)
 	}, [chainId, price])
 
 	return (
@@ -894,7 +926,7 @@ function Vault() {
 						</VaultConfiguratorDescription>
 						<DepositFTMTitleWrapper>
 							<DepositFTMTitle>Deposit wFTM</DepositFTMTitle>
-							<DepositFTMBalance>Balance {formatNumber(balance[turnCollateral])} {cryptoCurrencies[turnCollateral]}</DepositFTMBalance>
+							<DepositFTMBalance onClick={() => addWFTMToken()}>Balance {formatNumber(balance[turnCollateral])} {cryptoCurrencies[turnCollateral]}</DepositFTMBalance>
 						</DepositFTMTitleWrapper>
 						<DepositFTMInputWrapper>
 							<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)}>
