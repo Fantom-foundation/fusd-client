@@ -3,10 +3,12 @@ import { ethers } from 'ethers';
 
 import { useWeb3React } from '@web3-react/core';
 import { FMint_ABI } from './abi';
+import { useWFTMContract } from './wftm'
 import { FMINT_CONTRACT_ADDRESS } from '../constants/walletconnection'
 
 export const useFMintContract = () => {
   const { chainId } = useWeb3React();
+  const { wftmAddress } = useWFTMContract();
 
   const fusdAddress = useCallback(() => FMINT_CONTRACT_ADDRESS[chainId], [chainId]);
 
@@ -36,10 +38,17 @@ export const useFMintContract = () => {
     await tx.wait();
   };
 
+  const getCollateralValue = async (address) => {
+    const contract = await getFMintContract();
+    const balance = await contract.collateralValueOf(address, wftmAddress(), 0);
+    return balance;
+  }
+
   return {
     fusdAddress,
     getFMintBalance,
     mustDeposit,
     mustMint,
+    getCollateralValue,
   };
 };

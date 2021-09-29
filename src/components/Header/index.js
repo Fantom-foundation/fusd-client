@@ -9,12 +9,13 @@ import { ChainId } from '@sushiswap/sdk';
 import BigNumber from "bignumber.js";
 
 import WalletConnectActions from '../../actions/walletconnect.actions'
+import VaultActions from '../../actions/vault.actions';
 import RightArrowIcon from '../../assets/icons/right_arrow.svg'
 import fUSDIcon from '../../assets/icons/fusd.svg'
 import LogoIcon from '../../assets/icons/logo.svg'
 import { injected } from '../../connectors';
 import './style.css';
-import { useFUSDContract, useWFTMContract } from '../../contracts';
+import { useFMintContract, useFUSDContract, useWFTMContract } from '../../contracts';
 import WalletUtils from '../../utils/wallet';
 import { formatBalance } from '../../utils';
 import SwapIcon from '../../assets/icons/swap.svg'
@@ -338,6 +339,7 @@ function Header() {
   const { account, chainId, active, activate } = useWeb3React();
   const { getWFTMBalance, wrapFTM, unwrapFTM } = useWFTMContract();
   const { price } = useSelector(state => state.Price);
+  const { collateral } = useSelector(state => state.Vault);
 
   const [fUSDBalance, setFUSDBalance] = useState(0)
   const [ftmBalance, setFTMBalance] = useState(0)
@@ -347,11 +349,17 @@ function Header() {
   const [modalShow, setModalShow] = useState(false);
   const [wrapAmount, setWrapAmount] = useState('');
   const { getFUSDBalance } = useFUSDContract();
+  const { getCollateralValue } = useFMintContract();
 
   const getBalance = async () => {
 		let balance = await getFUSDBalance(account)
 		setFUSDBalance(balance)
 	}
+
+  const getCollateral = async () => {
+    let collateralValue = await getCollateralValue(account)
+    dispatch(VaultActions.updateCollateral(ethers.utils.formatEther(collateralValue)));
+  }
 
   const shrinkAddress = (str) => {
 		if (str === undefined) {
@@ -501,6 +509,7 @@ function Header() {
     if (account) {
       init();
       getBalance();
+      getCollateral();
     } else {
       handleSignOut();
     }
@@ -522,11 +531,14 @@ function Header() {
         <>
           <HeaderButtonsContainer>
             <HeaderButton onClick={e => history.push('/vaults')}>
-              My vaults
+              My vault
             </HeaderButton>
-            <HeaderButton onClick={e => history.push('/vault')}>
-              Open a new vault
-            </HeaderButton>
+            {
+              collateral === 0 &&
+              <HeaderButton onClick={e => history.push('/vault')}>
+                Open a new vault
+              </HeaderButton>
+            }
             <Dropdown>
               <WalletInfo variant="none">
                 <WalletAddress>
