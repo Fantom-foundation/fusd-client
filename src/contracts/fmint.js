@@ -40,8 +40,20 @@ export const useFMintContract = () => {
 
   const getCollateralValue = async (address) => {
     const contract = await getFMintContract();
-    const balance = await contract.collateralValueOf(address, wftmAddress(), 0);
-    return balance;
+    const collateral = await contract.collateralValueOf(address, wftmAddress(), 0);
+    return collateral;
+  }
+
+  const getMinCollateralRatio = async () => {
+    const contract = await getFMintContract();
+    const collateralRatio = await contract.getCollateralLowestDebtRatio4dec();
+    return Math.round(collateralRatio / 100);
+  }
+
+  const getDebtValue = async (address) => {
+    const contract = await getFMintContract();
+    const debt = await contract.debtValueOf(address, wftmAddress(), 0);
+    return debt;
   }
 
   return {
@@ -50,5 +62,7 @@ export const useFMintContract = () => {
     mustDeposit,
     mustMint,
     getCollateralValue,
+    getMinCollateralRatio,
+    getDebtValue
   };
 };

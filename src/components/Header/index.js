@@ -17,7 +17,7 @@ import { injected } from '../../connectors';
 import './style.css';
 import { useFMintContract, useFUSDContract, useWFTMContract } from '../../contracts';
 import WalletUtils from '../../utils/wallet';
-import { formatBalance } from '../../utils';
+import { formatBigNumber } from '../../utils';
 import SwapIcon from '../../assets/icons/swap.svg'
 
 const LogoContainer = styled.div`
@@ -547,7 +547,7 @@ function Header() {
                 <BalanceInfo>
                   <FUSDImg src={fUSDIcon}></FUSDImg>
                   <AccountBalanceSpan>
-                  {formatBalance(fUSDBalance)}
+                  {formatBigNumber(fUSDBalance)}
                   </AccountBalanceSpan>
                 </BalanceInfo>
               </WalletInfo>

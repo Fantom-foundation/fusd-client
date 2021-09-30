@@ -20,6 +20,16 @@ export function shortenAddress(address, chars = 4) {
 }
 
 export const formatBalance = num => {
+  var number = num
+  number = parseFloat(number)
+  number = isNaN(number) ? 0 : number;
+  return number.toLocaleString('en-US', {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2
+  })
+};
+
+export const formatBigNumber = num => {
   var number = ethers.utils.formatEther(num)
   number = parseFloat(number)
   number = isNaN(number) ? 0 : number;

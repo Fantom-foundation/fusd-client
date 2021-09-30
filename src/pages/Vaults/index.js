@@ -1,9 +1,15 @@
 import { useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { ethers } from 'ethers'
 import styled from 'styled-components'
 import Header from '../../components/Header';
 import RightArrowIcon from '../../assets/icons/right_arrow.svg'
 import FTMIcon from '../../assets/icons/ftm.svg'
+import { useFMintContract } from '../../contracts';
+import { useEffect, useState } from 'react';
+import { useWeb3React } from '@web3-react/core';
+import { formatBalance, formatBigNumber } from '../../utils'
+import BigNumber from "bignumber.js";
 
 const VaultsPageWrapper = styled.div`
 	margin: 20px 0;
@@ -193,7 +199,30 @@ const ManageVaultButton = styled.button`
 
 function Vaults() {
   let history = useHistory()
+  const { account } = useWeb3React();
   const { collateral } = useSelector(state => state.Vault);
+  const { price } = useSelector(state => state.Price);
+  const { getDebtValue, getMinCollateralRatio } = useFMintContract();
+
+  const [collateralRatio, setCollateralRatio] = useState('');
+  const [debt, setDebt] = useState('');
+  const [liquidationPrice, setLiquidationPrice] = useState('');
+
+  const getValutInfo = async () => {
+    const dbt = await getDebtValue(account);
+    setDebt(formatBigNumber(dbt));
+    const cr = new BigNumber(price * 100).multipliedBy(new BigNumber(collateral)).dividedBy(new BigNumber(ethers.utils.formatEther(dbt)));
+    setCollateralRatio(formatBalance(cr.toString()));
+
+    let minCollateralRatio = await getMinCollateralRatio();
+    minCollateralRatio = new BigNumber(minCollateralRatio / 100)
+    let liquidationPrice = new BigNumber(ethers.utils.formatEther(dbt)).dividedBy(minCollateralRatio).dividedBy(new BigNumber(collateral));
+    setLiquidationPrice(formatBalance(liquidationPrice.toString()));
+  }
+
+  useEffect(() => {
+    getValutInfo();
+  }, [price, collateral, debt]);
 
 	return (
 		<div>
@@ -210,7 +239,7 @@ function Vaults() {
                     Liquidation Price
                   </VaultInfoTitle>
                   <VaultInfo>
-                    $2750.56
+                    ${liquidationPrice}
                   </VaultInfo>
                 </VaultDetailsInfoItem>
                 <VaultDetailsInfoItem>
@@ -218,7 +247,7 @@ function Vaults() {
                     Collateral Ratio
                   </VaultInfoTitle>
                   <VaultInfo>
-                    150%
+                    {collateralRatio}%
                   </VaultInfo>
                 </VaultDetailsInfoItem>
                 <VaultDetailsInfoItem>
@@ -226,7 +255,7 @@ function Vaults() {
                     Collateral Locked
                   </VaultInfoTitle>
                   <VaultInfo>
-                    120 WFTM
+                    {formatBalance(collateral)} WFTM
                   </VaultInfo>
                 </VaultDetailsInfoItem>
                 <VaultDetailsInfoItem>
@@ -234,7 +263,7 @@ function Vaults() {
                     fUSD Debt
                   </VaultInfoTitle>
                   <VaultInfo>
-                    120.93 wFTM
+                    {debt} FUSD
                   </VaultInfo>
                 </VaultDetailsInfoItem>
               </VaultInfoRow>
