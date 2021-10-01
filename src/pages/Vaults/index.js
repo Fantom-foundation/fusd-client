@@ -1,15 +1,10 @@
 import { useHistory } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { ethers } from 'ethers'
 import styled from 'styled-components'
 import Header from '../../components/Header';
 import RightArrowIcon from '../../assets/icons/right_arrow.svg'
 import FTMIcon from '../../assets/icons/ftm.svg'
-import { useFMintContract } from '../../contracts';
-import { useEffect, useState } from 'react';
-import { useWeb3React } from '@web3-react/core';
-import { formatBalance, formatBigNumber } from '../../utils'
-import BigNumber from "bignumber.js";
+import { formatBalance } from '../../utils'
+import useVaultInfo from '../../hooks/useVaultInfo'
 
 const VaultsPageWrapper = styled.div`
 	margin: 20px 0;
@@ -143,21 +138,6 @@ line-height: 19px;
 color: #26283E;
 `
 
-const VaultUnit = styled.span`
-font-family: Inter;
-font-style: normal;
-font-weight: 600;
-font-size: 12px;
-line-height: 15px;
-/* identical to box height */
-
-
-/* black */
-
-color: #26283E;
-margin-left: 4px;
-`
-
 const FTMImg = styled.img`
 	width: 24px;
 	height: 24px;
@@ -199,30 +179,11 @@ const ManageVaultButton = styled.button`
 
 function Vaults() {
   let history = useHistory()
-  const { account } = useWeb3React();
-  const { collateral } = useSelector(state => state.Vault);
-  const { price } = useSelector(state => state.Price);
-  const { getDebtValue, getMinCollateralRatio } = useFMintContract();
-
-  const [collateralRatio, setCollateralRatio] = useState('');
-  const [debt, setDebt] = useState('');
-  const [liquidationPrice, setLiquidationPrice] = useState('');
-
-  const getValutInfo = async () => {
-    const dbt = await getDebtValue(account);
-    setDebt(formatBigNumber(dbt));
-    const cr = new BigNumber(price * 100).multipliedBy(new BigNumber(collateral)).dividedBy(new BigNumber(ethers.utils.formatEther(dbt)));
-    setCollateralRatio(formatBalance(cr.toString()));
-
-    let minCollateralRatio = await getMinCollateralRatio();
-    minCollateralRatio = new BigNumber(minCollateralRatio / 100)
-    let liquidationPrice = new BigNumber(ethers.utils.formatEther(dbt)).dividedBy(minCollateralRatio).dividedBy(new BigNumber(collateral));
-    setLiquidationPrice(formatBalance(liquidationPrice.toString()));
-  }
-
-  useEffect(() => {
-    getValutInfo();
-  }, [price, collateral, debt]);
+  const vaultInfo = useVaultInfo();
+  const collateralRatio = formatBalance(vaultInfo.collateralRatio);
+  const collateral = formatBalance(vaultInfo.collateral);
+  const liquidationPrice = formatBalance(vaultInfo.liquidationPrice);
+  const debt = formatBalance(vaultInfo.debt);
 
 	return (
 		<div>

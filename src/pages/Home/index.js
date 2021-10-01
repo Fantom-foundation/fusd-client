@@ -1,6 +1,5 @@
 import Header from '../../components/Header';
 import { useHistory } from 'react-router-dom'
-import { useSelector } from 'react-redux'
 import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
 import RightArrowIcon from '../../assets/icons/right_arrow.svg'

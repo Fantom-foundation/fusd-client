@@ -1,18 +1,17 @@
 import Header from '../../components/Header';
-import axios from 'axios'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
 import FTMIcon from '../../assets/icons/ftm.svg'
 import SwapIcon from '../../assets/icons/swap.svg'
 import PlusIcon from '../../assets/icons/plus.svg'
 import MinusIcon from '../../assets/icons/minus.svg'
-import { urls } from '../../constants/urls'
 import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
 import { useWFTMContract, useFMintContract } from '../../contracts';
 import { FMINT_CONTRACT_ADDRESS, FUSD_CONTRACT_ADDRESS, WFTM_CONTRACT_ADDRESS } from '../../constants/walletconnection'
 import BigNumber from "bignumber.js";
+import useVaultInfo from '../../hooks/useVaultInfo';
+import { formatBalance } from '../../utils';
 
 const VaultPageWrapper = styled.div`
 	margin: 20px 0;
@@ -342,13 +341,6 @@ color: #26283E;
 margin-left: 4px;
 `
 
-const VaultRowSeperator = styled.div`
-	border-bottom: 1px solid #F3F2FC;
-	@media screen and (max-width: 576px) {
-		border-bottom: none;
-	}
-`
-
 const VaultConfigurator = styled.div`
 text-align: left;
 `
@@ -650,21 +642,64 @@ padding-bottom: 60px;
 `
 
 function Vault() {
-	const { account, chainId, error } = useWeb3React();
-	const [collateral, setCollateral] = useState(['', ''])
-	const [balance, setBalance] = useState([0, 0])
-	const [turnCollateral, setTurnCollateral] = useState(0)
-	const [showGenerateFUSD, setShowGenerateFUSD] = useState(false)
+	const { account, chainId } = useWeb3React();
+	const defaultVaultInfo = useVaultInfo();
+	const [collateral, setCollateral] = useState(['', '']) // Deposit amount input in the field in wftm and usd
+	const [balance, setBalance] = useState([0, 0]) // 
+	const [turnCollateral, setTurnCollateral] = useState(0) // deposit in wftm or usd, 0: wftm, 1: fusd
+	const [showGenerateFUSD, setShowGenerateFUSD] = useState(false) // Showing GenerateFUSD button
 	const [generateFUSD, setGenerateFUSD] = useState('')
 	const [generating, setGenerating] = useState(false)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
 	const { mustDeposit, mustMint } = useFMintContract();
-	const minCollateralRatio = 300;
-	const liquidationRatio = 300;
+	const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
+	const liquidationRatio = defaultVaultInfo.minCollateralRatio;
 	const stabilityFee = 0;
 	const liquidationFee = 0;
+  const [afterLiquidationPrice, setAfterLiquidationPrice] = useState('');
+  const [afterCollateralRatio, setAfterCollateralRatio] = useState('');
+  const [afterCollateralLocked, setAfterCollateralLocked] = useState('');
+  const [afterDebt, setAfterDebt] = useState('');
+  const [actualCollateralLocked, setActualCollateralLocked] = useState('')
+  const [actualDebt, setActualDebt] = useState('')
+
+  const getNewVaultInfo = () => {
+    let newCollateralLocked = new BigNumber(actualCollateralLocked);
+    if (collateral[0]) {
+      newCollateralLocked = newCollateralLocked.plus(new BigNumber(collateral[0]))
+    }
+    const newAfterCollateralLocked = newCollateralLocked.toString()
+    setAfterCollateralLocked(newAfterCollateralLocked)
+
+    let newDebt = new BigNumber(actualDebt)
+    if (generateFUSD) {
+      newDebt = newDebt.plus(new BigNumber(generateFUSD))
+    }
+    const dbt = newDebt.toString()
+    setAfterDebt(dbt)
+
+		const cr = new BigNumber(price * 100)
+      .multipliedBy(new BigNumber(newAfterCollateralLocked))
+      .dividedBy(new BigNumber(dbt));
+		setAfterCollateralRatio(cr.toString());
+	
+		let liquidationPrice = new BigNumber(dbt)
+      .dividedBy(new BigNumber(minCollateralRatio / 100))
+      .dividedBy(new BigNumber(newAfterCollateralLocked));
+    setAfterLiquidationPrice(liquidationPrice.toString());
+  }
+
+  useEffect(() => {
+    setActualCollateralLocked(defaultVaultInfo.collateral)
+    setActualDebt(defaultVaultInfo.debt)
+    getNewVaultInfo();
+  }, [defaultVaultInfo])
+
+  useEffect(() => {
+    getNewVaultInfo();
+  }, [collateral, generateFUSD])
 
 	const getBalance = async () => {
 		let ftmBalance = await getWFTMBalance(account)
@@ -692,6 +727,10 @@ function Vault() {
 		setCollateral([...collateralAmounts])
 	}
 
+  const getCollateralLockedPrice = () => {
+    return afterCollateralLocked * price
+  }
+
 	const oppositeCollateralCurrency = () => {
 		return turnCollateral ? 0 : 1
 	}
@@ -714,10 +753,6 @@ function Vault() {
 		setGenerateFUSD(e.target.value)
 	}
 
-	const collateralRatio = () => {
-		return generateFUSD === '' ? 0 : collateral[1] * 100 / generateFUSD;
-	}
-
 	const collateralStyleClass = (collateralRatio) => {
 		if (collateralRatio === '' || collateralRatio === 0) {
 			return ''
@@ -736,8 +771,10 @@ function Vault() {
 		const depositAmount = BigNumber(collateral[0]).multipliedBy(decimals)
 		try {
 			await increaseAllowance(FMINT_CONTRACT_ADDRESS[chainId], depositAmount.toString());
-			await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
-			const fusdAmount = BigNumber(generateFUSD).multipliedBy(decimals)
+      if (!depositAmount.isEqualTo(new BigNumber(0))) {
+        await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+      }
+			const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
 			await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
 			initialize()
 		} catch (error) {
@@ -754,6 +791,15 @@ function Vault() {
 		setGenerating(false)
 		getBalance();
 	}
+
+  const getAvailableToGenerate = () => {
+    return new BigNumber(afterCollateralLocked)
+      .multipliedBy(new BigNumber(price))
+      .multipliedBy(new BigNumber(100))
+      .dividedBy(new BigNumber(minCollateralRatio))
+      .minus(new BigNumber(actualDebt))
+      .toString()
+  }
 
 	const addWFTMToken = async () => {
     const tokenAddress = WFTM_CONTRACT_ADDRESS[chainId];
@@ -812,7 +858,7 @@ function Vault() {
 									Liquidation price
 								</InfoLabel>
 								<InfoValue>
-									$0.00
+									${formatBalance(afterLiquidationPrice)}
 								</InfoValue>
 							</LiquidationPriceInfo>
 							<VerticalSeperator/>
@@ -820,8 +866,8 @@ function Vault() {
 								<InfoLabel className="text-right">
 									Collateralization ratio
 								</InfoLabel>
-								<InfoValue className={"text-right " + `${collateralStyleClass(collateralRatio())}`}>
-									{formatNumber(collateralRatio())}%
+								<InfoValue className={"text-right " + `${collateralStyleClass(afterCollateralRatio)}`}>
+									{formatNumber(afterCollateralRatio)}%
 								</InfoValue>
 							</CollateralizationInfo>
 						</LiquidationCollateralWrapper>
@@ -839,10 +885,10 @@ function Vault() {
 							<CollateralWrapper>
 								<CollateralNumberInfo>
 									<InfoLabel>Collateral locked</InfoLabel>
-									<CollateralNumber>{collateral[0] ? formatNumber(collateral[0]) : '--'}</CollateralNumber>
+									<CollateralNumber>{afterCollateralLocked ? formatNumber(afterCollateralLocked) : '--'}</CollateralNumber>
 								</CollateralNumberInfo>
 								<CollateralPrice>
-								${collateral[1] ? formatNumber(collateral[1]) : '--'}
+								${afterCollateralLocked ? formatNumber(getCollateralLockedPrice()) : '--'}
 								</CollateralPrice>
 							</CollateralWrapper>
 						</PriceCollateralWrapper>
@@ -858,7 +904,7 @@ function Vault() {
 										Vault fUSD Debt
 									</VaultInfoTitle>
 									<VaultInfo>
-										0.00
+										{formatBalance(afterDebt)}
 										<VaultUnit>
 										fUSD
 										</VaultUnit>
@@ -880,7 +926,7 @@ function Vault() {
 									Available to Generate
 									</VaultInfoTitle>
 									<VaultInfo>
-									{formatNumber(collateral[1] * 100 / minCollateralRatio)}
+									{formatNumber(getAvailableToGenerate())}
 									<VaultUnit>
 									USD
 									</VaultUnit>
@@ -948,15 +994,15 @@ function Vault() {
 							<GenerateFUSDContainer>
 								<GenerateFUSDLabelRow>
 									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax onClick={() => setGenerateFUSD(collateral[1] * 100 / minCollateralRatio)}>Max {formatNumber(collateral[1] * 100 / minCollateralRatio)} fUSD</GenerateFUSDMax>
+									<GenerateFUSDMax onClick={() => setGenerateFUSD(getAvailableToGenerate())}>Max {formatNumber(getAvailableToGenerate())} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
-									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(collateral[1] * 100 / minCollateralRatio) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
+									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(getAvailableToGenerate()) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
 									</GenerateFUSDInput>
 								</GenerateFUSDInputWrapper>
 							</GenerateFUSDContainer>
 						}
-						<GenerateFUSDButton disabled={generateFUSD === '' || generating} onClick={() => handleGenerateFUSD()}>
+						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(getAvailableToGenerate())} onClick={() => handleGenerateFUSD()}>
 							{
 								generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
 							}

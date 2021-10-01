@@ -23,6 +23,7 @@ export const formatBalance = num => {
   var number = num
   number = parseFloat(number)
   number = isNaN(number) ? 0 : number;
+  number = Math.round(number * 100) / 100;
   return number.toLocaleString('en-US', {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2

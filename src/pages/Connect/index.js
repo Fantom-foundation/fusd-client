@@ -1,11 +1,8 @@
 import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { useHistory } from 'react-router-dom'
-import { ethers } from 'ethers'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
-import WalletConnectActions from '../../actions/walletconnect.actions'
-import { DestNet } from '../../constants/walletconnection'
 import { SUPPORTED_WALLETS } from '../../constants/wallet';
 import './style.css'
 
@@ -34,7 +31,6 @@ background-color: white;
 
 function Connect() {
   const { activate, active, connector, error, deactivate } = useWeb3React();
-	const dispatch = useDispatch()
   const history = useHistory()
 
   const Option = ({ onClick = null, header, icon, active = false }) => {

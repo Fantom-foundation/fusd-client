@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux'
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux'
 import ClipLoader from "react-spinners/ClipLoader";
 import { urls } from '../../constants/urls'
-import { ethers } from 'ethers'
 import axios from 'axios'
 import styled from 'styled-components'
 import { useWeb3React } from '@web3-react/core';
 import { toast } from 'react-toastify'
 import Header from '../../components/Header';
-import WalletConnectActions from '../../actions/walletconnect.actions'
 import './style.css'
 
 const AccountSettingsForm = styled.form`
