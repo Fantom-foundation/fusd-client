@@ -4,19 +4,21 @@ import { ethers } from 'ethers';
 import { useWeb3React } from '@web3-react/core';
 import { FMint_ABI } from './abi';
 import { useWFTMContract } from './wftm'
+import { useFUSDContract } from './fusd';
 import { FMINT_CONTRACT_ADDRESS } from '../constants/walletconnection'
 
 export const useFMintContract = () => {
   const { chainId } = useWeb3React();
   const { wftmAddress } = useWFTMContract();
+  const { fusdAddress } = useFUSDContract();
 
-  const fusdAddress = useCallback(() => FMINT_CONTRACT_ADDRESS[chainId], [chainId]);
+  const fmintAddress = useCallback(() => FMINT_CONTRACT_ADDRESS[chainId], [chainId]);
 
   const getFMintContract = async () => {
     await window.ethereum.enable();
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
-    const contract = new ethers.Contract(fusdAddress(), FMint_ABI, signer);
+    const contract = new ethers.Contract(fmintAddress(), FMint_ABI, signer);
 
     return contract;
   };
@@ -56,13 +58,27 @@ export const useFMintContract = () => {
     return debt;
   }
 
+  const getMaxToWithdraw = async (address) => {
+    const contract = await getFMintContract();
+    const max = await contract.getMaxToWithdraw(address, wftmAddress(), 0);
+    return max;
+  }
+
+  const getMaxToMint = async (address) => {
+    const contract = await getFMintContract();
+    const max = await contract.getMaxToMint(address, fusdAddress(), 300);
+    return max;
+  }
+
   return {
-    fusdAddress,
+    fmintAddress,
     getFMintBalance,
     mustDeposit,
     mustMint,
     getCollateralValue,
     getMinCollateralRatio,
-    getDebtValue
+    getDebtValue,
+    getMaxToWithdraw,
+    getMaxToMint
   };
 };

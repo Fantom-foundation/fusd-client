@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
-import { Dropdown, Modal, Button } from 'react-bootstrap'
+import { Dropdown, Modal } from 'react-bootstrap'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core';
 import { ChainId } from '@sushiswap/sdk';
 import BigNumber from "bignumber.js";
@@ -448,12 +448,6 @@ function Header() {
       maximumFractionDigits: 2,
       minimumFractionDigits: 2
     })
-  }
-
-  const roundFTMBalance = (balance) => {
-    var number = parseFloat(balance)
-    number = isNaN(number) ? 0 : number;
-    return Math.trunc(number * 10 ** 2) / 10 ** 2;
   }
 
   const wrapPrice = () => {

@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import { useEffect, useState } from 'react';
 import { Client } from '@bandprotocol/bandchain.js';
 import { ethers } from 'ethers';
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Home from '../../pages/Home'

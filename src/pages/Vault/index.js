@@ -1,7 +1,10 @@
 import Header from '../../components/Header';
 import { useSelector } from 'react-redux'
+import ClipLoader from "react-spinners/ClipLoader";
 import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
+import { Modal, Button } from 'react-bootstrap'
+import { ethers } from 'ethers'
 import FTMIcon from '../../assets/icons/ftm.svg'
 import SwapIcon from '../../assets/icons/swap.svg'
 import PlusIcon from '../../assets/icons/plus.svg'
@@ -12,6 +15,7 @@ import { FMINT_CONTRACT_ADDRESS, FUSD_CONTRACT_ADDRESS, WFTM_CONTRACT_ADDRESS } 
 import BigNumber from "bignumber.js";
 import useVaultInfo from '../../hooks/useVaultInfo';
 import { formatBalance } from '../../utils';
+import StepBar from '../../components/StepBar';
 
 const VaultPageWrapper = styled.div`
 	margin: 20px 0;
@@ -650,10 +654,12 @@ function Vault() {
 	const [showGenerateFUSD, setShowGenerateFUSD] = useState(false) // Showing GenerateFUSD button
 	const [generateFUSD, setGenerateFUSD] = useState('')
 	const [generating, setGenerating] = useState(false)
+	const [maxToMint, setMaxToMint] = useState('')
+	const [maxToWithdraw, setMaxToWithdraw] = useState('')
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
-	const { mustDeposit, mustMint } = useFMintContract();
+	const { mustDeposit, mustMint, getMaxToWithdraw, getMaxToMint } = useFMintContract();
 	const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
 	const liquidationRatio = defaultVaultInfo.minCollateralRatio;
 	const stabilityFee = 0;
@@ -664,6 +670,9 @@ function Vault() {
   const [afterDebt, setAfterDebt] = useState('');
   const [actualCollateralLocked, setActualCollateralLocked] = useState('')
   const [actualDebt, setActualDebt] = useState('')
+  const [modalShow, setModalShow] = useState(false);
+  const [activeStep, setActiveStep] = useState(1);
+  const [progressing, setProgressing] = useState(false);
 
   const getNewVaultInfo = () => {
     let newCollateralLocked = new BigNumber(actualCollateralLocked);
@@ -695,6 +704,7 @@ function Vault() {
     setActualCollateralLocked(defaultVaultInfo.collateral)
     setActualDebt(defaultVaultInfo.debt)
     getNewVaultInfo();
+		getAvailableToGenerate();
   }, [defaultVaultInfo])
 
   useEffect(() => {
@@ -766,22 +776,39 @@ function Vault() {
 	}
 
 	const handleGenerateFUSD = async () => {
+    setModalShow(true)
 		setGenerating(true)
-		const decimals = BigNumber('10').pow(18)
+		
+	}
+
+  const goToNextStep = async () => {
+    const decimals = BigNumber('10').pow(18)
 		const depositAmount = BigNumber(collateral[0]).multipliedBy(decimals)
+    
+    setProgressing(true);
 		try {
-			await increaseAllowance(FMINT_CONTRACT_ADDRESS[chainId], depositAmount.toString());
-      if (!depositAmount.isEqualTo(new BigNumber(0))) {
-        await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+      if (activeStep === 1) {
+        if (!depositAmount.isEqualTo(new BigNumber(0))) {
+          await increaseAllowance(FMINT_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+        }
+      } else if (activeStep === 2) {
+        if (!depositAmount.isEqualTo(new BigNumber(0))) {
+          await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+        }
+      } else if (activeStep === 3) {
+        const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
+        await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
+        initialize()
       }
-			const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
-			await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
-			initialize()
 		} catch (error) {
-			setGenerating(false)
+      setGenerating(false)
+      setActiveStep(1)
 			console.log(error)
 		}
-	}
+    setProgressing(false);
+    const currentStep = activeStep + 1;
+    setActiveStep(currentStep)
+  }
 
 	const initialize = () => {
 		setCollateral(['', ''])
@@ -790,15 +817,24 @@ function Vault() {
 		setGenerateFUSD('')
 		setGenerating(false)
 		getBalance();
+    setModalShow(false);
+    setActiveStep(1);
 	}
 
-  const getAvailableToGenerate = () => {
-    return new BigNumber(afterCollateralLocked)
-      .multipliedBy(new BigNumber(price))
-      .multipliedBy(new BigNumber(100))
-      .dividedBy(new BigNumber(minCollateralRatio))
-      .minus(new BigNumber(actualDebt))
-      .toString()
+  const getAvailableToGenerate = async () => {
+		if (maxToMint === '') {
+			let available = await getMaxToMint(account);
+			available = ethers.utils.formatEther(available)
+			setMaxToMint(available)
+		} else {
+			let available= new BigNumber(afterCollateralLocked)
+				.multipliedBy(new BigNumber(price))
+				.multipliedBy(new BigNumber(100))
+				.dividedBy(new BigNumber(minCollateralRatio))
+				.minus(new BigNumber(actualDebt))
+				.toString()
+			setMaxToMint(available)
+		}
   }
 
 	const addWFTMToken = async () => {
@@ -840,6 +876,11 @@ function Vault() {
 			console.log(error)
 		}
 	}, [chainId, price])
+
+  const handleClose = () => {
+    setModalShow(false)
+    setGenerating(false)
+  }
 
 	return (
 		<div>
@@ -926,7 +967,7 @@ function Vault() {
 									Available to Generate
 									</VaultInfoTitle>
 									<VaultInfo>
-									{formatNumber(getAvailableToGenerate())}
+									{formatNumber(maxToMint)}
 									<VaultUnit>
 									USD
 									</VaultUnit>
@@ -994,15 +1035,15 @@ function Vault() {
 							<GenerateFUSDContainer>
 								<GenerateFUSDLabelRow>
 									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax onClick={() => setGenerateFUSD(getAvailableToGenerate())}>Max {formatNumber(getAvailableToGenerate())} fUSD</GenerateFUSDMax>
+									<GenerateFUSDMax onClick={() => setGenerateFUSD(maxToMint)}>Max {formatNumber(maxToMint)} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
-									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(getAvailableToGenerate()) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
+									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(maxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
 									</GenerateFUSDInput>
 								</GenerateFUSDInputWrapper>
 							</GenerateFUSDContainer>
 						}
-						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(getAvailableToGenerate())} onClick={() => handleGenerateFUSD()}>
+						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(maxToMint)} onClick={() => handleGenerateFUSD()}>
 							{
 								generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
 							}
@@ -1035,6 +1076,32 @@ function Vault() {
 					</VaultConfigurator>
 				</VaultConfigurationWrapper>
 			</VaultPageWrapper>
+
+      <Modal
+        size="md"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+        show={modalShow}
+        onHide={handleClose}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Confirmation
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <StepBar step={activeStep} />
+        </Modal.Body>
+        <Modal.Footer>
+          {
+            !progressing && 
+            <Button onClick={() => setModalShow(false)}>Cancel</Button>
+          }
+          <Button variant="primary" onClick={() => goToNextStep()} disabled={progressing}>
+            { progressing ? (<ClipLoader color="#EFF3FB" loading={progressing} size={24} />) : 'Submit' }
+          </Button>
+        </Modal.Footer>
+      </Modal>
 		</div>
 	);
 }
