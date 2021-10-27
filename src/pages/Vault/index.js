@@ -341,7 +341,6 @@ line-height: 15px;
 
 /* black */
 
-color: #26283E;
 margin-left: 4px;
 `
 
@@ -645,6 +644,25 @@ padding: 30px;
 padding-bottom: 60px;
 `
 
+const ValueAfterWrapper = styled.div`
+`
+
+const ValueAfter = styled.div`
+  box-sizing: border-box;
+  margin: 8px 0px 0px;
+  min-width: 0px;
+  border-radius: 20px;
+  background-color: #E7FCFA;
+  color: #1AAB9B;
+  font-weight: 700;
+  border: none;
+  padding: 0px 12px;
+  display: inline-block;
+  line-height: 2;
+  font-size: 12px;
+  min-width: 0px;
+`
+
 function Vault() {
 	const { account, chainId } = useWeb3React();
 	const defaultVaultInfo = useVaultInfo();
@@ -901,6 +919,11 @@ function Vault() {
 								<InfoValue>
 									${formatBalance(afterLiquidationPrice)}
 								</InfoValue>
+                <ValueAfterWrapper>
+                  <ValueAfter>
+                    ${formatBalance(afterLiquidationPrice)} after
+                  </ValueAfter>
+                </ValueAfterWrapper>
 							</LiquidationPriceInfo>
 							<VerticalSeperator/>
 							<CollateralizationInfo>
@@ -910,6 +933,11 @@ function Vault() {
 								<InfoValue className={"text-right " + `${collateralStyleClass(afterCollateralRatio)}`}>
 									{formatNumber(afterCollateralRatio)}%
 								</InfoValue>
+                <ValueAfterWrapper>
+                  <ValueAfter>
+                    {formatNumber(afterCollateralRatio)}% after
+                  </ValueAfter>
+                </ValueAfterWrapper>
 							</CollateralizationInfo>
 						</LiquidationCollateralWrapper>
 						<PriceCollateralWrapper>
@@ -927,6 +955,11 @@ function Vault() {
 								<CollateralNumberInfo>
 									<InfoLabel>Collateral locked</InfoLabel>
 									<CollateralNumber>{afterCollateralLocked ? formatNumber(afterCollateralLocked) : '--'}</CollateralNumber>
+                  <ValueAfterWrapper>
+                    <ValueAfter>
+                      {afterCollateralLocked ? formatNumber(afterCollateralLocked) : '--'} after
+                    </ValueAfter>
+                  </ValueAfterWrapper>
 								</CollateralNumberInfo>
 								<CollateralPrice>
 								${afterCollateralLocked ? formatNumber(getCollateralLockedPrice()) : '--'}
@@ -949,29 +982,57 @@ function Vault() {
 										<VaultUnit>
 										fUSD
 										</VaultUnit>
+                    &nbsp;after
 									</VaultInfo>
+                  <ValueAfterWrapper>
+                    <ValueAfter>
+                      {formatBalance(afterDebt)}
+                      <VaultUnit>
+                      fUSD
+                      </VaultUnit>
+                      &nbsp;after
+                    </ValueAfter>
+                  </ValueAfterWrapper>
 								</VaultDetailsInfoItem>
 								<VaultDetailsInfoItem>
 									<VaultInfoTitle>
 									Available to withdraw
 									</VaultInfoTitle>
 									<VaultInfo>
-									{formatNumber(collateral[0])}
-									<VaultUnit>
-									wFTM
-									</VaultUnit>
+                    {formatNumber(collateral[0])}
+                    <VaultUnit>
+                    wFTM
+                    </VaultUnit>
 									</VaultInfo>
+                  <ValueAfterWrapper>
+                    <ValueAfter>
+                      {formatNumber(collateral[0])}
+                      <VaultUnit>
+                      wFTM
+                      </VaultUnit>
+                      &nbsp;after
+                    </ValueAfter>
+                  </ValueAfterWrapper>
 								</VaultDetailsInfoItem>
 								<VaultDetailsInfoItem>
 									<VaultInfoTitle>
 									Available to Generate
 									</VaultInfoTitle>
-									<VaultInfo>
-									{formatNumber(maxToMint)}
-									<VaultUnit>
-									USD
-									</VaultUnit>
+                  <VaultInfo>
+                    {formatNumber(maxToMint)}
+                    <VaultUnit>
+                    USD
+                    </VaultUnit>
 									</VaultInfo>
+                  <ValueAfterWrapper>
+                    <ValueAfter>
+                      {formatNumber(maxToMint)}
+                      <VaultUnit>
+                      USD
+                      </VaultUnit>
+                      &nbsp;after
+                    </ValueAfter>
+                  </ValueAfterWrapper>
 								</VaultDetailsInfoItem>
 							</VaultDetailsRow>
 							
