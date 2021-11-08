@@ -23,6 +23,14 @@ export const useFMintContract = () => {
     return contract;
   };
 
+  const getFMintReader = async () => {
+    await window.ethereum.enable();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contract = new ethers.Contract(fmintAddress(), FMint_ABI, provider);
+
+    return contract;
+  };
+
   const getFMintBalance = async address => {
     const contract = await getFMintContract();
     return await contract.balanceOf(address);
@@ -41,9 +49,14 @@ export const useFMintContract = () => {
   };
 
   const getCollateralValue = async (address) => {
-    const contract = await getFMintContract();
-    const collateral = await contract.collateralValueOf(address, wftmAddress(), 0);
-    return collateral;
+    try {
+      const contract = await getFMintContract();
+      const collateral = await contract.collateralValueOf(address, wftmAddress(), 0);
+      return collateral;
+    } catch (e) {
+      console.log(e)
+      return 0;
+    }
   }
 
   const getMinCollateralRatio = async () => {
@@ -65,9 +78,15 @@ export const useFMintContract = () => {
   }
 
   const getMaxToMint = async (address) => {
-    const contract = await getFMintContract();
+    const contract = await getFMintReader();
     const max = await contract.getMaxToMint(address, fusdAddress(), 300);
     return max;
+  }
+
+  const getAddressProvider = async () => {
+    const contract = await getFMintContract();
+    const addressProvider = await contract.addressProvider();
+    return addressProvider;
   }
 
   return {
@@ -79,6 +98,7 @@ export const useFMintContract = () => {
     getMinCollateralRatio,
     getDebtValue,
     getMaxToWithdraw,
-    getMaxToMint
+    getMaxToMint,
+    getAddressProvider
   };
 };

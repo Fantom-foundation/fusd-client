@@ -677,7 +677,7 @@ function Vault() {
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
-	const { mustDeposit, mustMint, getMaxToWithdraw, getMaxToMint } = useFMintContract();
+	const { mustDeposit, mustMint, getMaxToWithdraw, getMaxToMint, getAddressProvider } = useFMintContract();
 	const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
 	const liquidationRatio = defaultVaultInfo.minCollateralRatio;
 	const stabilityFee = 0;
