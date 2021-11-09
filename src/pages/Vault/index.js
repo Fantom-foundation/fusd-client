@@ -645,6 +645,10 @@ padding-bottom: 60px;
 `
 
 const ValueAfterWrapper = styled.div`
+  text-align: left;
+  &.align-right {
+    text-align: right;
+  }
 `
 
 const ValueAfter = styled.div`
@@ -674,10 +678,12 @@ function Vault() {
 	const [generating, setGenerating] = useState(false)
 	const [maxToMint, setMaxToMint] = useState('')
 	const [maxToWithdraw, setMaxToWithdraw] = useState('')
+  const [afterMaxToMint, setAfterMaxToMint] = useState('')
+	const [afterMaxToWithdraw, setAfterMaxToWithdraw] = useState('')
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
-	const { mustDeposit, mustMint, getMaxToWithdraw, getMaxToMint, getAddressProvider } = useFMintContract();
+	const { mustDeposit, mustMint, getMaxToWithdraw, getMaxToWithdrawWithChanges, getMaxToMint, getMaxToMintWithChanges } = useFMintContract();
 	const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
 	const liquidationRatio = defaultVaultInfo.minCollateralRatio;
 	const stabilityFee = 0;
@@ -688,6 +694,8 @@ function Vault() {
   const [afterDebt, setAfterDebt] = useState('');
   const [actualCollateralLocked, setActualCollateralLocked] = useState('')
   const [actualDebt, setActualDebt] = useState('')
+  const [actualCollateralRatio, setActualCollateralRatio] = useState('');
+  const [actualLiquidationPrice, setActualLiquidationPrice] = useState('');
   const [modalShow, setModalShow] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [progressing, setProgressing] = useState(false);
@@ -718,11 +726,31 @@ function Vault() {
     setAfterLiquidationPrice(liquidationPrice.toString());
   }
 
+  const getDefaultVaultInfo = () => {
+    if (actualDebt != 0) {
+      const cr = new BigNumber(price * 100)
+        .multipliedBy(new BigNumber(actualCollateralLocked))
+        .dividedBy(new BigNumber(actualDebt));
+      setActualCollateralRatio(cr.toString());
+    } else {
+      setActualCollateralRatio('');
+    }
+	
+		let liquidationPrice = new BigNumber(actualDebt)
+      .dividedBy(new BigNumber(minCollateralRatio / 100))
+      .dividedBy(new BigNumber(actualCollateralLocked));
+    setActualLiquidationPrice(liquidationPrice.toString());
+  }
+
   useEffect(() => {
     setActualCollateralLocked(defaultVaultInfo.collateral)
     setActualDebt(defaultVaultInfo.debt)
+    getDefaultVaultInfo();
     getNewVaultInfo();
 		getAvailableToGenerate();
+    getAvailableToWithdraw();
+    getAvailableToGenerateWithChanges();
+    getAvailableToWithdrawWithChanges();
   }, [defaultVaultInfo])
 
   useEffect(() => {
@@ -840,19 +868,47 @@ function Vault() {
 	}
 
   const getAvailableToGenerate = async () => {
-		if (maxToMint === '') {
-			let available = await getMaxToMint(account);
-			available = ethers.utils.formatEther(available)
-			setMaxToMint(available)
-		} else {
-			let available= new BigNumber(afterCollateralLocked)
-				.multipliedBy(new BigNumber(price))
-				.multipliedBy(new BigNumber(100))
-				.dividedBy(new BigNumber(minCollateralRatio))
-				.minus(new BigNumber(actualDebt))
-				.toString()
-			setMaxToMint(available)
-		}
+    try {
+      let available = await getMaxToMint(account);
+      available = ethers.utils.formatEther(available)
+      setMaxToMint(available)
+    } catch (e) {
+      console.log(e);
+      setMaxToMint(0)
+    }
+  }
+
+  const getAvailableToGenerateWithChanges = async () => {
+    try {
+      let available = await getMaxToMintWithChanges(account, collateral[0], generateFUSD);
+      available = ethers.utils.formatEther(available)
+      setAfterMaxToMint(available)
+    } catch (e) {
+      console.log(e);
+      setAfterMaxToMint(0)
+    }
+  }
+
+  const getAvailableToWithdraw = async () => {
+    try {
+      let available = await getMaxToWithdraw(account);
+      available = ethers.utils.formatEther(available)
+      setMaxToWithdraw(available)
+    } catch (e) {
+      console.log(e);
+      setMaxToWithdraw(0)
+    }
+  }
+
+  const getAvailableToWithdrawWithChanges = async () => {
+    try {
+      let available = await getMaxToWithdrawWithChanges(account);
+      available = ethers.utils.formatEther(available)
+      setAfterMaxToWithdraw(available)
+    } catch (e) {
+      console.log(e);
+      setAfterMaxToWithdraw(0)
+    }
   }
 
 	const addWFTMToken = async () => {
@@ -917,7 +973,7 @@ function Vault() {
 									Liquidation price
 								</InfoLabel>
 								<InfoValue>
-									${formatBalance(afterLiquidationPrice)}
+									${formatBalance(actualLiquidationPrice)}
 								</InfoValue>
                 <ValueAfterWrapper>
                   <ValueAfter>
@@ -930,10 +986,10 @@ function Vault() {
 								<InfoLabel className="text-right">
 									Collateralization ratio
 								</InfoLabel>
-								<InfoValue className={"text-right " + `${collateralStyleClass(afterCollateralRatio)}`}>
-									{formatNumber(afterCollateralRatio)}%
+								<InfoValue className={"text-right " + `${collateralStyleClass(actualCollateralRatio)}`}>
+									{formatNumber(actualCollateralRatio)}%
 								</InfoValue>
-                <ValueAfterWrapper>
+                <ValueAfterWrapper className="align-right">
                   <ValueAfter>
                     {formatNumber(afterCollateralRatio)}% after
                   </ValueAfter>
@@ -947,22 +1003,22 @@ function Vault() {
 									<CurrentPrice>${formatNumber(price)}</CurrentPrice>
 								</CurrentPriceInfo>
 								<NextPriceInfo>
-									<InfoLabel>Next price in 10 minutes</InfoLabel>
-									<NextPrice>$0.24  (0.00%)</NextPrice>
+									{/* <InfoLabel>Next price in 10 minutes</InfoLabel>
+									<NextPrice>$0.24  (0.00%)</NextPrice> */}
 								</NextPriceInfo>
 							</PriceInfoWrapper>
 							<CollateralWrapper>
 								<CollateralNumberInfo>
 									<InfoLabel>Collateral locked</InfoLabel>
-									<CollateralNumber>{afterCollateralLocked ? formatNumber(afterCollateralLocked) : '--'}</CollateralNumber>
-                  <ValueAfterWrapper>
+									<CollateralNumber>${afterCollateralLocked ? formatNumber(actualCollateralLocked * price) : '--'}</CollateralNumber>
+                  <ValueAfterWrapper className="align-right">
                     <ValueAfter>
-                      {afterCollateralLocked ? formatNumber(afterCollateralLocked) : '--'} after
+                      ${afterCollateralLocked ? formatNumber(getCollateralLockedPrice()) : '--'} after
                     </ValueAfter>
                   </ValueAfterWrapper>
 								</CollateralNumberInfo>
 								<CollateralPrice>
-								${afterCollateralLocked ? formatNumber(getCollateralLockedPrice()) : '--'}
+								{actualCollateralLocked ? formatNumber(actualCollateralLocked) : '--'}
 								</CollateralPrice>
 							</CollateralWrapper>
 						</PriceCollateralWrapper>
@@ -978,11 +1034,10 @@ function Vault() {
 										Vault fUSD Debt
 									</VaultInfoTitle>
 									<VaultInfo>
-										{formatBalance(afterDebt)}
+										{formatBalance(actualDebt)}
 										<VaultUnit>
 										fUSD
 										</VaultUnit>
-                    &nbsp;after
 									</VaultInfo>
                   <ValueAfterWrapper>
                     <ValueAfter>
@@ -999,14 +1054,14 @@ function Vault() {
 									Available to withdraw
 									</VaultInfoTitle>
 									<VaultInfo>
-                    {formatNumber(collateral[0])}
+                    {formatNumber(maxToWithdraw)}
                     <VaultUnit>
                     wFTM
                     </VaultUnit>
 									</VaultInfo>
                   <ValueAfterWrapper>
                     <ValueAfter>
-                      {formatNumber(collateral[0])}
+                      {formatNumber(afterMaxToWithdraw)}
                       <VaultUnit>
                       wFTM
                       </VaultUnit>
@@ -1026,7 +1081,7 @@ function Vault() {
 									</VaultInfo>
                   <ValueAfterWrapper>
                     <ValueAfter>
-                      {formatNumber(maxToMint)}
+                      {formatNumber(afterMaxToMint)}
                       <VaultUnit>
                       USD
                       </VaultUnit>
