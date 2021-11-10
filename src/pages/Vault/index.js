@@ -645,9 +645,13 @@ padding-bottom: 60px;
 `
 
 const ValueAfterWrapper = styled.div`
+  visibility: hidden;
   text-align: left;
   &.align-right {
     text-align: right;
+  }
+  &.active {
+    visibility: visible;
   }
 `
 
@@ -880,7 +884,10 @@ function Vault() {
 
   const getAvailableToGenerateWithChanges = async () => {
     try {
-      let available = await getMaxToMintWithChanges(account, collateral[0], generateFUSD);
+      let decimalM = new BigNumber(10).pow(18);
+      let collateralDiff = new BigNumber(collateral[0] == '' ? 0 : collateral[0]).multipliedBy(decimalM);
+      let debtDiff = new BigNumber(generateFUSD == '' ? 0 : generateFUSD).multipliedBy(decimalM);
+      let available = await getMaxToMintWithChanges(account, collateralDiff.toString(), debtDiff.toString());
       available = ethers.utils.formatEther(available)
       setAfterMaxToMint(available)
     } catch (e) {
@@ -902,7 +909,10 @@ function Vault() {
 
   const getAvailableToWithdrawWithChanges = async () => {
     try {
-      let available = await getMaxToWithdrawWithChanges(account);
+      let decimalM = new BigNumber(10).pow(18);
+      let collateralDiff = new BigNumber(collateral[0] == '' ? 0 : collateral[0]).multipliedBy(decimalM);
+      let debtDiff = new BigNumber(generateFUSD == '' ? 0 : generateFUSD).multipliedBy(decimalM);
+      let available = await getMaxToWithdrawWithChanges(account, collateralDiff.toString(), debtDiff.toString());
       available = ethers.utils.formatEther(available)
       setAfterMaxToWithdraw(available)
     } catch (e) {
@@ -975,7 +985,7 @@ function Vault() {
 								<InfoValue>
 									${formatBalance(actualLiquidationPrice)}
 								</InfoValue>
-                <ValueAfterWrapper>
+                <ValueAfterWrapper className={`${actualLiquidationPrice !== afterLiquidationPrice ? 'active' : ''}`}>
                   <ValueAfter>
                     ${formatBalance(afterLiquidationPrice)} after
                   </ValueAfter>
@@ -989,7 +999,7 @@ function Vault() {
 								<InfoValue className={"text-right " + `${collateralStyleClass(actualCollateralRatio)}`}>
 									{formatNumber(actualCollateralRatio)}%
 								</InfoValue>
-                <ValueAfterWrapper className="align-right">
+                <ValueAfterWrapper className={`align-right ${actualCollateralRatio !== afterCollateralRatio ? 'active' : ''}`}>
                   <ValueAfter>
                     {formatNumber(afterCollateralRatio)}% after
                   </ValueAfter>
@@ -1011,7 +1021,7 @@ function Vault() {
 								<CollateralNumberInfo>
 									<InfoLabel>Collateral locked</InfoLabel>
 									<CollateralNumber>${afterCollateralLocked ? formatNumber(actualCollateralLocked * price) : '--'}</CollateralNumber>
-                  <ValueAfterWrapper className="align-right">
+                  <ValueAfterWrapper className={`align-right ${actualCollateralLocked !== afterCollateralLocked ? 'active' : ''}`}>
                     <ValueAfter>
                       ${afterCollateralLocked ? formatNumber(getCollateralLockedPrice()) : '--'} after
                     </ValueAfter>
@@ -1039,7 +1049,7 @@ function Vault() {
 										fUSD
 										</VaultUnit>
 									</VaultInfo>
-                  <ValueAfterWrapper>
+                  <ValueAfterWrapper className={`${formatBalance(actualDebt) !== formatBalance(afterDebt) ? 'active' : ''}`}>
                     <ValueAfter>
                       {formatBalance(afterDebt)}
                       <VaultUnit>
@@ -1059,7 +1069,7 @@ function Vault() {
                     wFTM
                     </VaultUnit>
 									</VaultInfo>
-                  <ValueAfterWrapper>
+                  <ValueAfterWrapper className={`${maxToWithdraw !== afterMaxToWithdraw ? 'active' : ''}`}>
                     <ValueAfter>
                       {formatNumber(afterMaxToWithdraw)}
                       <VaultUnit>
@@ -1079,7 +1089,7 @@ function Vault() {
                     USD
                     </VaultUnit>
 									</VaultInfo>
-                  <ValueAfterWrapper>
+                  <ValueAfterWrapper className={`${maxToMint !== afterMaxToMint ? 'active' : ''}`}>
                     <ValueAfter>
                       {formatNumber(afterMaxToMint)}
                       <VaultUnit>
@@ -1151,7 +1161,7 @@ function Vault() {
 							<GenerateFUSDContainer>
 								<GenerateFUSDLabelRow>
 									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax onClick={() => setGenerateFUSD(maxToMint)}>Max {formatNumber(maxToMint)} fUSD</GenerateFUSDMax>
+									<GenerateFUSDMax onClick={() => setGenerateFUSD(afterMaxToMint)}>Max {formatNumber(afterMaxToMint)} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
 									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(maxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
@@ -1159,7 +1169,7 @@ function Vault() {
 								</GenerateFUSDInputWrapper>
 							</GenerateFUSDContainer>
 						}
-						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(maxToMint)} onClick={() => handleGenerateFUSD()}>
+						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(afterMaxToMint)} onClick={() => handleGenerateFUSD()}>
 							{
 								generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
 							}

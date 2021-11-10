@@ -78,8 +78,8 @@ export const useFMintContract = () => {
   }
 
   const getMaxToWithdrawWithChanges = async (address, collateral, debt) => {
-    const contract = await getFMintContract();
-    const max = await contract.getMaxToWithdrawWithChanges(address, wftmAddress(), 300, wftmAddress(), collateral, fusdAddress(), debt);
+    const contract = await getFMintReader();
+    const max = await contract.callStatic.getMaxToWithdrawWithChanges(address, wftmAddress(), 300, wftmAddress(), collateral, fusdAddress(), debt);
     return max;
   }
 
@@ -96,7 +96,7 @@ export const useFMintContract = () => {
   const getMaxToMintWithChanges = async (address, collateral, debt) => {
     try {
       const contract = await getFMintReader();
-      const max = await contract.getMaxToMintWithChanges(address, fusdAddress(), 300, wftmAddress(), collateral, fusdAddress(), debt);
+      const max = await contract.callStatic.getMaxToMintWithChanges(address, fusdAddress(), 300, wftmAddress(), collateral, fusdAddress(), debt);
       return max;
     } catch (e) {
       console.log(e);
