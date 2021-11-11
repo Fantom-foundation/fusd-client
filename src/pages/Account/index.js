@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux'
 import ClipLoader from "react-spinners/ClipLoader";
 import { urls } from '../../constants/urls'
 import axios from 'axios'
@@ -95,9 +94,7 @@ const FormButton = styled.button`
 `
 
 function Account() {
-	const dispatch = useDispatch()
-
-  const { active, account, chainId } = useWeb3React();
+  const { account } = useWeb3React();
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = (e) => {

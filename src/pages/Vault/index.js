@@ -199,19 +199,19 @@ text-align: left;
 margin-top: 16px;
 `
 
-const NextPrice = styled.div`
-font-family: Proxima Nova;
-font-style: normal;
-font-weight: 600;
-font-size: 16px;
-line-height: 19px;
+// const NextPrice = styled.div`
+// font-family: Proxima Nova;
+// font-style: normal;
+// font-weight: 600;
+// font-size: 16px;
+// line-height: 19px;
 
-/* grey */
+// /* grey */
 
-color: #787A9B;
-text-align: left;
-margin-top: 10px;
-`
+// color: #787A9B;
+// text-align: left;
+// margin-top: 10px;
+// `
 
 const CollateralNumber = styled.div`
 font-family: Inter;
@@ -731,7 +731,7 @@ function Vault() {
   }
 
   const getDefaultVaultInfo = () => {
-    if (actualDebt != 0) {
+    if (actualDebt !== 0) {
       const cr = new BigNumber(price * 100)
         .multipliedBy(new BigNumber(actualCollateralLocked))
         .dividedBy(new BigNumber(actualDebt));
@@ -753,12 +753,12 @@ function Vault() {
     getNewVaultInfo();
 		getAvailableToGenerate();
     getAvailableToWithdraw();
-    getAvailableToGenerateWithChanges();
-    getAvailableToWithdrawWithChanges();
   }, [defaultVaultInfo])
 
   useEffect(() => {
     getNewVaultInfo();
+    getAvailableToGenerateWithChanges();
+    getAvailableToWithdrawWithChanges();
   }, [collateral, generateFUSD])
 
 	const getBalance = async () => {
@@ -885,8 +885,8 @@ function Vault() {
   const getAvailableToGenerateWithChanges = async () => {
     try {
       let decimalM = new BigNumber(10).pow(18);
-      let collateralDiff = new BigNumber(collateral[0] == '' ? 0 : collateral[0]).multipliedBy(decimalM);
-      let debtDiff = new BigNumber(generateFUSD == '' ? 0 : generateFUSD).multipliedBy(decimalM);
+      let collateralDiff = new BigNumber(collateral[0] === '' ? 0 : collateral[0]).multipliedBy(decimalM);
+      let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD).multipliedBy(decimalM);
       let available = await getMaxToMintWithChanges(account, collateralDiff.toString(), debtDiff.toString());
       available = ethers.utils.formatEther(available)
       setAfterMaxToMint(available)
@@ -910,8 +910,8 @@ function Vault() {
   const getAvailableToWithdrawWithChanges = async () => {
     try {
       let decimalM = new BigNumber(10).pow(18);
-      let collateralDiff = new BigNumber(collateral[0] == '' ? 0 : collateral[0]).multipliedBy(decimalM);
-      let debtDiff = new BigNumber(generateFUSD == '' ? 0 : generateFUSD).multipliedBy(decimalM);
+      let collateralDiff = new BigNumber(collateral[0] === '' ? 0 : collateral[0]).multipliedBy(decimalM);
+      let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD).multipliedBy(decimalM);
       let available = await getMaxToWithdrawWithChanges(account, collateralDiff.toString(), debtDiff.toString());
       available = ethers.utils.formatEther(available)
       setAfterMaxToWithdraw(available)

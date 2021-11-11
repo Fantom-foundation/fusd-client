@@ -17,17 +17,20 @@ const useVaultInfo = () => {
   const [liquidationPrice, setLiquidationPrice] = useState('');
 	const [minCollateralRatio, setMinCollateralRatio] = useState('');
 
-	useEffect(async () => {
-		const dbt = await getDebtValue(account);
-		setDebt(ethers.utils.formatEther(dbt));
-		const cr = new BigNumber(price * 100).multipliedBy(new BigNumber(collateral)).dividedBy(new BigNumber(ethers.utils.formatEther(dbt)));
-		setCollateralRatio(cr.toString());
-	
-		let minCollateralRatio = await getMinCollateralRatio();
-		setMinCollateralRatio(minCollateralRatio.toString());
-		minCollateralRatio = new BigNumber(minCollateralRatio / 100)
-		let liquidationPrice = new BigNumber(ethers.utils.formatEther(dbt)).dividedBy(minCollateralRatio).dividedBy(new BigNumber(collateral));
-		setLiquidationPrice(liquidationPrice.toString());
+	useEffect(() => {
+		async function fetchData() {
+			const dbt = await getDebtValue(account);
+			setDebt(ethers.utils.formatEther(dbt));
+			const cr = new BigNumber(price * 100).multipliedBy(new BigNumber(collateral)).dividedBy(new BigNumber(ethers.utils.formatEther(dbt)));
+			setCollateralRatio(cr.toString());
+		
+			let minCollateralRatio = await getMinCollateralRatio();
+			setMinCollateralRatio(minCollateralRatio.toString());
+			minCollateralRatio = new BigNumber(minCollateralRatio / 100)
+			let liquidationPrice = new BigNumber(ethers.utils.formatEther(dbt)).dividedBy(minCollateralRatio).dividedBy(new BigNumber(collateral));
+			setLiquidationPrice(liquidationPrice.toString());
+		}
+		fetchData();
 	}, [collateral, price, account]);
 
 	return {

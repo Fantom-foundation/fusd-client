@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
@@ -30,7 +29,7 @@ background-color: white;
 `
 
 function Connect() {
-  const { activate, active, connector, error, deactivate } = useWeb3React();
+  const { activate, active, connector } = useWeb3React();
   const history = useHistory()
 
   const Option = ({ onClick = null, header, icon, active = false }) => {
@@ -39,7 +38,7 @@ function Connect() {
         onClick={onClick}
       >
         <div>{header}</div>
-        <img src={icon}/>
+        <img src={icon} alt=""/>
       </ConnectOption>
     );
   };
