@@ -14,7 +14,7 @@ import { useWFTMContract, useFMintContract } from '../../contracts';
 import { FMINT_CONTRACT_ADDRESS, FUSD_CONTRACT_ADDRESS, WFTM_CONTRACT_ADDRESS } from '../../constants/walletconnection'
 import BigNumber from "bignumber.js";
 import useVaultInfo from '../../hooks/useVaultInfo';
-import { formatBalance } from '../../utils';
+import { formatBalance, compareBN } from '../../utils';
 import StepBar from '../../components/StepBar';
 
 const VaultPageWrapper = styled.div`
@@ -680,10 +680,10 @@ function Vault() {
 	const [showGenerateFUSD, setShowGenerateFUSD] = useState(false) // Showing GenerateFUSD button
 	const [generateFUSD, setGenerateFUSD] = useState('')
 	const [generating, setGenerating] = useState(false)
-	const [maxToMint, setMaxToMint] = useState('')
-	const [maxToWithdraw, setMaxToWithdraw] = useState('')
-  const [afterMaxToMint, setAfterMaxToMint] = useState('')
-	const [afterMaxToWithdraw, setAfterMaxToWithdraw] = useState('')
+	const [maxToMint, setMaxToMint] = useState(0)
+	const [maxToWithdraw, setMaxToWithdraw] = useState(0)
+  const [afterMaxToMint, setAfterMaxToMint] = useState(0)
+	const [afterMaxToWithdraw, setAfterMaxToWithdraw] = useState(0)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
@@ -692,14 +692,14 @@ function Vault() {
 	const liquidationRatio = defaultVaultInfo.minCollateralRatio;
 	const stabilityFee = 0;
 	const liquidationFee = 0;
-  const [afterLiquidationPrice, setAfterLiquidationPrice] = useState('');
-  const [afterCollateralRatio, setAfterCollateralRatio] = useState('');
-  const [afterCollateralLocked, setAfterCollateralLocked] = useState('');
-  const [afterDebt, setAfterDebt] = useState('');
-  const [actualCollateralLocked, setActualCollateralLocked] = useState('')
-  const [actualDebt, setActualDebt] = useState('')
-  const [actualCollateralRatio, setActualCollateralRatio] = useState('');
-  const [actualLiquidationPrice, setActualLiquidationPrice] = useState('');
+  const [afterLiquidationPrice, setAfterLiquidationPrice] = useState(0);
+  const [afterCollateralRatio, setAfterCollateralRatio] = useState(0);
+  const [afterCollateralLocked, setAfterCollateralLocked] = useState(0);
+  const [afterDebt, setAfterDebt] = useState(0);
+  const [actualCollateralLocked, setActualCollateralLocked] = useState(0)
+  const [actualDebt, setActualDebt] = useState(0)
+  const [actualCollateralRatio, setActualCollateralRatio] = useState(0);
+  const [actualLiquidationPrice, setActualLiquidationPrice] = useState(0);
   const [modalShow, setModalShow] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [progressing, setProgressing] = useState(false);
@@ -719,30 +719,42 @@ function Vault() {
     const dbt = newDebt.toString()
     setAfterDebt(dbt)
 
-		const cr = new BigNumber(price * 100)
+		let cr = new BigNumber(price * 100)
       .multipliedBy(new BigNumber(newAfterCollateralLocked))
       .dividedBy(new BigNumber(dbt));
+		if (cr.isNaN()) {
+			cr = new BigNumber(0);
+		}
 		setAfterCollateralRatio(cr.toString());
 	
 		let liquidationPrice = new BigNumber(dbt)
       .dividedBy(new BigNumber(minCollateralRatio / 100))
       .dividedBy(new BigNumber(newAfterCollateralLocked));
+		if (liquidationPrice.isNaN()) {
+			liquidationPrice = new BigNumber(0);
+		}
     setAfterLiquidationPrice(liquidationPrice.toString());
   }
 
   const getDefaultVaultInfo = () => {
     if (actualDebt !== 0) {
-      const cr = new BigNumber(price * 100)
+      let cr = new BigNumber(price * 100)
         .multipliedBy(new BigNumber(actualCollateralLocked))
         .dividedBy(new BigNumber(actualDebt));
+			if (cr.isNaN()) {
+				cr = new BigNumber(0);
+			}
       setActualCollateralRatio(cr.toString());
     } else {
-      setActualCollateralRatio('');
+      setActualCollateralRatio(0);
     }
 	
 		let liquidationPrice = new BigNumber(actualDebt)
       .dividedBy(new BigNumber(minCollateralRatio / 100))
       .dividedBy(new BigNumber(actualCollateralLocked));
+		if (liquidationPrice.isNaN()) {
+			liquidationPrice = new BigNumber(0);
+		}
     setActualLiquidationPrice(liquidationPrice.toString());
   }
 
@@ -874,6 +886,7 @@ function Vault() {
   const getAvailableToGenerate = async () => {
     try {
       let available = await getMaxToMint(account);
+			available = available === undefined ? 0 : available;
       available = ethers.utils.formatEther(available)
       setMaxToMint(available)
     } catch (e) {
@@ -888,6 +901,7 @@ function Vault() {
       let collateralDiff = new BigNumber(collateral[0] === '' ? 0 : collateral[0]).multipliedBy(decimalM);
       let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD).multipliedBy(decimalM);
       let available = await getMaxToMintWithChanges(account, collateralDiff.toString(), debtDiff.toString());
+			available = available === undefined ? 0 : available;
       available = ethers.utils.formatEther(available)
       setAfterMaxToMint(available)
     } catch (e) {
@@ -985,7 +999,7 @@ function Vault() {
 								<InfoValue>
 									${formatBalance(actualLiquidationPrice)}
 								</InfoValue>
-                <ValueAfterWrapper className={`${actualLiquidationPrice !== afterLiquidationPrice ? 'active' : ''}`}>
+                <ValueAfterWrapper className={`${!compareBN(actualLiquidationPrice, afterLiquidationPrice) ? 'active' : ''}`}>
                   <ValueAfter>
                     ${formatBalance(afterLiquidationPrice)} after
                   </ValueAfter>
@@ -999,7 +1013,7 @@ function Vault() {
 								<InfoValue className={"text-right " + `${collateralStyleClass(actualCollateralRatio)}`}>
 									{formatNumber(actualCollateralRatio)}%
 								</InfoValue>
-                <ValueAfterWrapper className={`align-right ${actualCollateralRatio !== afterCollateralRatio ? 'active' : ''}`}>
+                <ValueAfterWrapper className={`align-right ${!compareBN(actualCollateralRatio, afterCollateralRatio) ? 'active' : ''}`}>
                   <ValueAfter>
                     {formatNumber(afterCollateralRatio)}% after
                   </ValueAfter>
@@ -1021,7 +1035,7 @@ function Vault() {
 								<CollateralNumberInfo>
 									<InfoLabel>Collateral locked</InfoLabel>
 									<CollateralNumber>${afterCollateralLocked ? formatNumber(actualCollateralLocked * price) : '--'}</CollateralNumber>
-                  <ValueAfterWrapper className={`align-right ${actualCollateralLocked !== afterCollateralLocked ? 'active' : ''}`}>
+                  <ValueAfterWrapper className={`align-right ${!compareBN(actualCollateralLocked, afterCollateralLocked) ? 'active' : ''}`}>
                     <ValueAfter>
                       ${afterCollateralLocked ? formatNumber(getCollateralLockedPrice()) : '--'} after
                     </ValueAfter>
@@ -1049,7 +1063,7 @@ function Vault() {
 										fUSD
 										</VaultUnit>
 									</VaultInfo>
-                  <ValueAfterWrapper className={`${formatBalance(actualDebt) !== formatBalance(afterDebt) ? 'active' : ''}`}>
+                  <ValueAfterWrapper className={`${!compareBN(actualDebt,afterDebt) ? 'active' : ''}`}>
                     <ValueAfter>
                       {formatBalance(afterDebt)}
                       <VaultUnit>
@@ -1069,7 +1083,7 @@ function Vault() {
                     wFTM
                     </VaultUnit>
 									</VaultInfo>
-                  <ValueAfterWrapper className={`${maxToWithdraw !== afterMaxToWithdraw ? 'active' : ''}`}>
+                  <ValueAfterWrapper className={`${!compareBN(maxToWithdraw, afterMaxToWithdraw) ? 'active' : ''}`}>
                     <ValueAfter>
                       {formatNumber(afterMaxToWithdraw)}
                       <VaultUnit>
@@ -1089,7 +1103,7 @@ function Vault() {
                     USD
                     </VaultUnit>
 									</VaultInfo>
-                  <ValueAfterWrapper className={`${maxToMint !== afterMaxToMint ? 'active' : ''}`}>
+                  <ValueAfterWrapper className={`${!compareBN(maxToMint, afterMaxToMint) ? 'active' : ''}`}>
                     <ValueAfter>
                       {formatNumber(afterMaxToMint)}
                       <VaultUnit>

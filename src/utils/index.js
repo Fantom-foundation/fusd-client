@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { getAddress } from '@ethersproject/address';
+import BigNumber from "bignumber.js";
 
 export function isAddress(value) {
   try {
@@ -45,3 +46,7 @@ export const calculateGasMargin = value => {
     .mul(ethers.BigNumber.from(10000).add(ethers.BigNumber.from(1000)))
     .div(ethers.BigNumber.from(10000));
 };
+
+export const compareBN = (val1, val2) => {
+  return new BigNumber(val1).isEqualTo(val2);
+}
