@@ -78,7 +78,7 @@ const VaultConfigurationWrapper = styled.div`
 	border: 1px solid #F3F2FC;
 	box-sizing: border-box;
 	border-radius: 28px;
-	padding: 30px 25px;
+	padding: 30px;
 
 	@media screen and (max-width: 1200px) {
 		margin-top: 24px;

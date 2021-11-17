@@ -6,7 +6,8 @@ import { SUPPORTED_WALLETS } from '../../constants/wallet';
 import './style.css'
 
 const ConnectPageContentWrapper = styled.div`
-background: rgba(255, 255, 255, 0.4);
+background: #FFFFFF;
+box-shadow: 2px 15px 40px 2px #edf0f4;
 backdrop-filter: blur(40px);
 
 /* Note: backdrop-filter has minimal browser support */
@@ -26,6 +27,9 @@ background-color: white;
   display: flex;
   padding: 16px;
   margin: 8px;
+  &:hover {
+    background-color: #cdf;
+  }
 `
 
 function Connect() {

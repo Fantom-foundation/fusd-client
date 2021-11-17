@@ -77,8 +77,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fff;
-  background: url('../src/assets/images/background.png');
+  background-color: #286ff6 !important;
   background-size: cover;
 }
 

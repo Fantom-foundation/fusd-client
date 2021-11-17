@@ -9,6 +9,11 @@ import useVaultInfo from '../../hooks/useVaultInfo'
 const VaultsPageWrapper = styled.div`
 	margin: 20px 0;
   margin-top: 100px;
+  background: #FFFFFF;
+  box-shadow: 2px 15px 40px 2px #edf0f4;
+  backdrop-filter: blur(40px);
+  border-radius: 36px;
+  padding-top: 50px;
 `
 
 const PageBodyText = styled.div`

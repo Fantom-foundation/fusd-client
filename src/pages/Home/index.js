@@ -2,7 +2,7 @@ import Header from '../../components/Header';
 import { useHistory } from 'react-router-dom'
 import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
-import RightArrowIcon from '../../assets/icons/right_arrow.svg'
+import RightArrowIcon from '../../assets/icons/right_arrow_white.svg'
 
 const PageBodyText = styled.div`
   font-family: Proxima Nova;
@@ -29,8 +29,8 @@ font-size: 16px;
 line-height: 19px;
 letter-spacing: -0.015em;
 
-color: #141D30;
-background: #FFFFFF;
+color: #FFF;
+background: #1969ff;
 border-radius: 60px;
 padding: 15px 20px 15px 30px;
 border: none;
@@ -46,7 +46,8 @@ const RightArrowImg = styled.img`
 `
 
 const HomePageContentWrapper = styled.div`
-background: rgba(255, 255, 255, 0.4);
+background: #FFFFFF;
+box-shadow: 2px 15px 40px 2px #edf0f4;
 backdrop-filter: blur(40px);
 
 /* Note: backdrop-filter has minimal browser support */
