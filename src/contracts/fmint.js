@@ -73,20 +73,20 @@ export const useFMintContract = () => {
 
   const getMaxToWithdraw = async (address) => {
     const contract = await getFMintContract();
-    const max = await contract.getMaxToWithdraw(address, wftmAddress(), 300);
+    const max = await contract.getMaxToWithdraw(address, wftmAddress(), 30000);
     return max;
   }
 
   const getMaxToWithdrawWithChanges = async (address, collateral, debt) => {
     const contract = await getFMintReader();
-    const max = await contract.callStatic.getMaxToWithdrawWithChanges(address, wftmAddress(), 300, wftmAddress(), collateral, fusdAddress(), debt);
+    const max = await contract.callStatic.getMaxToWithdrawWithChanges(address, wftmAddress(), 30000, wftmAddress(), collateral, fusdAddress(), debt);
     return max;
   }
 
   const getMaxToMint = async (address) => {
     try {
       const contract = await getFMintContract();
-      const max = await contract.getMaxToMint(address, fusdAddress(), 300);
+      const max = await contract.getMaxToMint(address, fusdAddress(), 30000);
       return max;
     } catch (e) {
       console.log(e);
@@ -96,7 +96,7 @@ export const useFMintContract = () => {
   const getMaxToMintWithChanges = async (address, collateral, debt) => {
     try {
       const contract = await getFMintReader();
-      const max = await contract.callStatic.getMaxToMintWithChanges(address, fusdAddress(), 300, wftmAddress(), collateral, fusdAddress(), debt);
+      const max = await contract.callStatic.getMaxToMintWithChanges(address, fusdAddress(), 30000, wftmAddress(), collateral, fusdAddress(), debt);
       return max;
     } catch (e) {
       console.log(e);
