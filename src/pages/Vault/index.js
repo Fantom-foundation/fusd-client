@@ -683,6 +683,7 @@ function Vault() {
 	const [maxToMint, setMaxToMint] = useState(0)
 	const [maxToWithdraw, setMaxToWithdraw] = useState(0)
   const [afterMaxToMint, setAfterMaxToMint] = useState(0)
+	const [currentMaxToMint, setCurrentMaxToMint] = useState(0)
 	const [afterMaxToWithdraw, setAfterMaxToWithdraw] = useState(0)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
@@ -904,6 +905,12 @@ function Vault() {
 			available = available === undefined ? 0 : available;
       available = ethers.utils.formatEther(available)
       setAfterMaxToMint(available)
+
+			debtDiff = new BigNumber(0).multipliedBy(decimalM);
+      available = await getMaxToMintWithChanges(account, collateralDiff.toString(), debtDiff.toString());
+			available = available === undefined ? 0 : available;
+      available = ethers.utils.formatEther(available)
+			setCurrentMaxToMint(available)
     } catch (e) {
       console.log(e);
       setAfterMaxToMint(0)
@@ -1175,7 +1182,7 @@ function Vault() {
 							<GenerateFUSDContainer>
 								<GenerateFUSDLabelRow>
 									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax onClick={() => setGenerateFUSD(afterMaxToMint)}>Max {formatNumber(afterMaxToMint)} fUSD</GenerateFUSDMax>
+									<GenerateFUSDMax onClick={() => setGenerateFUSD(currentMaxToMint)}>Max {formatNumber(currentMaxToMint)} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
 									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(maxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
