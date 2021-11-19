@@ -109,6 +109,12 @@ export const useFMintContract = () => {
     return addressProvider;
   }
 
+  const getWFTMPrice = async () => {
+    const contract = await getFMintContract();
+    const price = await contract.getPrice(wftmAddress());
+    return price;
+  }
+
   return {
     fmintAddress,
     getFMintBalance,
@@ -121,6 +127,7 @@ export const useFMintContract = () => {
     getMaxToWithdrawWithChanges,
     getMaxToMint,
     getMaxToMintWithChanges,
-    getAddressProvider
+    getAddressProvider,
+    getWFTMPrice
   };
 };
