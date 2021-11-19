@@ -720,7 +720,7 @@ function Vault() {
     const dbt = newDebt.toString()
     setAfterDebt(dbt)
 
-		let cr = new BigNumber(price * 100)
+		let cr = new BigNumber(100)
       .multipliedBy(new BigNumber(newAfterCollateralLocked))
       .dividedBy(new BigNumber(dbt));
 		if (cr.isNaN()) {
@@ -739,7 +739,7 @@ function Vault() {
 
   const getDefaultVaultInfo = () => {
     if (actualDebt !== 0) {
-      let cr = new BigNumber(price * 100)
+      let cr = new BigNumber(100)
         .multipliedBy(new BigNumber(actualCollateralLocked))
         .dividedBy(new BigNumber(actualDebt));
 			if (cr.isNaN()) {
