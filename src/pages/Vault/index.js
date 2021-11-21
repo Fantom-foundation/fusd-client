@@ -671,6 +671,10 @@ const ValueAfter = styled.div`
   min-width: 0px;
 `
 
+const WFTMAddButton = styled.span`
+	cursor: pointer;
+`
+
 function Vault() {
 	const { account, chainId } = useWeb3React();
 	const defaultVaultInfo = useVaultInfo();
@@ -721,8 +725,9 @@ function Vault() {
     setAfterDebt(dbt)
 
 		let cr = new BigNumber(100)
-      .multipliedBy(new BigNumber(newAfterCollateralLocked))
-      .dividedBy(new BigNumber(dbt));
+		.multipliedBy(new BigNumber(price))
+		.multipliedBy(new BigNumber(newAfterCollateralLocked))
+		.dividedBy(new BigNumber(dbt))
 		if (cr.isNaN()) {
 			cr = new BigNumber(0);
 		}
@@ -740,8 +745,9 @@ function Vault() {
   const getDefaultVaultInfo = () => {
     if (actualDebt !== 0) {
       let cr = new BigNumber(100)
-        .multipliedBy(new BigNumber(actualCollateralLocked))
-        .dividedBy(new BigNumber(actualDebt));
+			.multipliedBy(new BigNumber(price))
+			.multipliedBy(new BigNumber(actualCollateralLocked))
+			.dividedBy(new BigNumber(actualDebt))
 			if (cr.isNaN()) {
 				cr = new BigNumber(0);
 			}
@@ -1159,8 +1165,8 @@ function Vault() {
 						Simulate your vault by configuring the amount of collateral to deposit, and fUSD to generate.
 						</VaultConfiguratorDescription>
 						<DepositFTMTitleWrapper>
-							<DepositFTMTitle>Deposit wFTM</DepositFTMTitle>
-							<DepositFTMBalance onClick={() => addWFTMToken()}>Balance {formatNumber(balance[turnCollateral])} {cryptoCurrencies[turnCollateral]}</DepositFTMBalance>
+							<DepositFTMTitle>Deposit <WFTMAddButton onClick={() => addWFTMToken()}>wFTM</WFTMAddButton></DepositFTMTitle>
+							<DepositFTMBalance onClick={() => changeCollateralHandler(balance[turnCollateral])}>Balance {formatNumber(balance[turnCollateral])} {cryptoCurrencies[turnCollateral]}</DepositFTMBalance>
 						</DepositFTMTitleWrapper>
 						<DepositFTMInputWrapper>
 							<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)}>
