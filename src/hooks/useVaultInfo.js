@@ -27,7 +27,7 @@ const useVaultInfo = () => {
 			let minCollateralRatio = await getMinCollateralRatio();
 			setMinCollateralRatio(minCollateralRatio.toString());
 			minCollateralRatio = new BigNumber(minCollateralRatio / 100)
-			let liquidationPrice = new BigNumber(ethers.utils.formatEther(dbt)).dividedBy(minCollateralRatio).dividedBy(new BigNumber(collateral));
+			let liquidationPrice = new BigNumber(ethers.utils.formatEther(dbt)).multipliedBy(minCollateralRatio).dividedBy(new BigNumber(collateral));
 			setLiquidationPrice(liquidationPrice.toString());
 		}
 		fetchData();

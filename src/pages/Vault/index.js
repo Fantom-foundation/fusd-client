@@ -734,7 +734,7 @@ function Vault() {
 		setAfterCollateralRatio(cr.toString());
 	
 		let liquidationPrice = new BigNumber(dbt)
-      .dividedBy(new BigNumber(minCollateralRatio / 100))
+      .multipliedBy(new BigNumber(minCollateralRatio / 100))
       .dividedBy(new BigNumber(newAfterCollateralLocked));
 		if (liquidationPrice.isNaN()) {
 			liquidationPrice = new BigNumber(0);
@@ -757,7 +757,7 @@ function Vault() {
     }
 	
 		let liquidationPrice = new BigNumber(actualDebt)
-      .dividedBy(new BigNumber(minCollateralRatio / 100))
+      .multipliedBy(new BigNumber(minCollateralRatio / 100))
       .dividedBy(new BigNumber(actualCollateralLocked));
 		if (liquidationPrice.isNaN()) {
 			liquidationPrice = new BigNumber(0);
