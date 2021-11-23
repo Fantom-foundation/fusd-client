@@ -349,7 +349,7 @@ function Header() {
   const [modalShow, setModalShow] = useState(false);
   const [wrapAmount, setWrapAmount] = useState('');
   const { getFUSDBalance } = useFUSDContract();
-  const { getCollateralValue } = useFMintContract();
+  const { getCollateralBalance } = useFMintContract();
 
   const getBalance = async () => {
 		let balance = await getFUSDBalance(account)
@@ -357,8 +357,8 @@ function Header() {
 	}
 
   const getCollateral = async () => {
-    let collateralValue = await getCollateralValue(account)
-    dispatch(VaultActions.updateCollateral(ethers.utils.formatEther(collateralValue)));
+    let collateralBalance = await getCollateralBalance(account)
+    dispatch(VaultActions.updateCollateral(ethers.utils.formatEther(collateralBalance)));
   }
 
   const shrinkAddress = (str) => {

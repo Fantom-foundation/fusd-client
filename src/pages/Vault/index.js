@@ -867,7 +867,7 @@ function Vault() {
       } else if (activeStep === 3) {
         const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
         await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
-        initialize()
+        initialize();
       }
 		} catch (error) {
       setGenerating(false)
@@ -880,14 +880,7 @@ function Vault() {
   }
 
 	const initialize = () => {
-		setCollateral(['', ''])
-		setTurnCollateral(0)
-		setShowGenerateFUSD(false)
-		setGenerateFUSD('')
-		setGenerating(false)
-		getBalance();
-    setModalShow(false);
-    setActiveStep(1);
+		window.location.reload();
 	}
 
   const getAvailableToGenerate = async () => {
@@ -1191,12 +1184,12 @@ function Vault() {
 									<GenerateFUSDMax onClick={() => setGenerateFUSD(currentMaxToMint)}>Max {formatNumber(currentMaxToMint)} fUSD</GenerateFUSDMax>
 								</GenerateFUSDLabelRow>
 								<GenerateFUSDInputWrapper>
-									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(maxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
+									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(currentMaxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
 									</GenerateFUSDInput>
 								</GenerateFUSDInputWrapper>
 							</GenerateFUSDContainer>
 						}
-						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(afterMaxToMint)} onClick={() => handleGenerateFUSD()}>
+						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(currentMaxToMint)} onClick={() => handleGenerateFUSD()}>
 							{
 								generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
 							}

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { ethers } from 'ethers';
 
 import { useWeb3React } from '@web3-react/core';
-import { FMint_ABI } from './abi';
+import { FMint_ABI, POOL_ABI } from './abi';
 import { useWFTMContract } from './wftm'
 import { useFUSDContract } from './fusd';
 import { FMINT_CONTRACT_ADDRESS } from '../constants/walletconnection'
@@ -20,6 +20,28 @@ export const useFMintContract = () => {
     const signer = provider.getSigner();
     const contract = new ethers.Contract(fmintAddress(), FMint_ABI, signer);
 
+    return contract;
+  };
+
+  const getCollateralPoolContract = async () => {
+    await window.ethereum.enable();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    const fmint = await getFMintContract();
+    const addr = await fmint.getCollateralPool();
+    const contract = new ethers.Contract(addr, POOL_ABI, signer);
+    return contract;
+  };
+
+  const getDebtPoolContract = async () => {
+    await window.ethereum.enable();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    const fmint = await getFMintContract();
+    const addr = await fmint.getDebtPool();
+    const contract = new ethers.Contract(addr, POOL_ABI, signer);
     return contract;
   };
 
@@ -59,6 +81,17 @@ export const useFMintContract = () => {
     }
   }
 
+  const getCollateralBalance = async (address) => {
+    try {
+      const contract = await getCollateralPoolContract();
+      const collateral = contract.balanceOf(address, wftmAddress());
+      return collateral;
+    } catch (e) {
+      console.log(e)
+      return 0;
+    }
+  }
+
   const getMinCollateralRatio = async () => {
     const contract = await getFMintContract();
     const collateralRatio = await contract.getCollateralLowestDebtRatio4dec();
@@ -69,6 +102,17 @@ export const useFMintContract = () => {
     const contract = await getFMintContract();
     const debt = await contract.debtValueOf(address, wftmAddress(), 0);
     return debt;
+  }
+
+  const getDebtBalance = async (address) => {
+    try {
+      const contract = await getDebtPoolContract();
+      const debt = contract.balanceOf(address, fusdAddress());
+      return debt;
+    } catch (e) {
+      console.log(e)
+      return 0;
+    }
   }
 
   const getMaxToWithdraw = async (address) => {
@@ -128,6 +172,8 @@ export const useFMintContract = () => {
     getMaxToMint,
     getMaxToMintWithChanges,
     getAddressProvider,
-    getWFTMPrice
+    getWFTMPrice,
+    getCollateralBalance,
+    getDebtBalance
   };
 };
