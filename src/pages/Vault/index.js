@@ -5,7 +5,6 @@ import { useWeb3React } from '@web3-react/core';
 import styled from 'styled-components'
 import { Modal, Button } from 'react-bootstrap'
 import { ethers } from 'ethers'
-import FTMIcon from '../../assets/icons/ftm.svg'
 import SwapIcon from '../../assets/icons/swap.svg'
 import PlusIcon from '../../assets/icons/plus.svg'
 import MinusIcon from '../../assets/icons/minus.svg'
@@ -14,8 +13,10 @@ import { useWFTMContract, useFMintContract } from '../../contracts';
 import { FMINT_CONTRACT_ADDRESS, FUSD_CONTRACT_ADDRESS, WFTM_CONTRACT_ADDRESS } from '../../constants/walletconnection'
 import BigNumber from "bignumber.js";
 import useVaultInfo from '../../hooks/useVaultInfo';
-import { formatBalance, compareBN } from '../../utils';
+import { formatNumber } from '../../utils';
 import StepBar from '../../components/StepBar';
+import VaultOverview from '../../components/VaultOverview';
+import VaultDetails from '../../components/VaultDetails';
 
 const VaultPageWrapper = styled.div`
 	margin: 20px 0;
@@ -36,37 +37,10 @@ const VaultInfoWrapper = styled.div`
 	}
 `
 
-const OpenVault = styled.div`
-font-family: Proxima Nova;
-font-style: normal;
-font-weight: 600;
-font-size: 18px;
-line-height: 22px;
-/* identical to box height */
-
-
-/* black */
-
-color: #26283E;
-display: flex;
-margin-bottom: 20px;
-`
-
-const FTMImg = styled.img`
-	width: 24px;
-	height: 24px;
-	margin-right: 8px;
-`
-
 const Seperator = styled.div`
 	border-bottom: 1px solid #F3F2FC;
 	margin-left: -30px;
 	margin-right: -30px;
-`
-
-const VerticalSeperator = styled.div`
-margin-top: 35px;
-border-left: 1px solid #F3F2FC;
 `
 
 const VaultConfigurationWrapper = styled.div`
@@ -85,120 +59,6 @@ const VaultConfigurationWrapper = styled.div`
 	}
 `
 
-const LiquidationCollateralWrapper = styled.div`
-	display:flex;
-	flex-direction: row;
-	justify-content: space-between;
-	margin-top: 32px;
-	flex-wrap: wrap;
-`
-
-const LiquidationPriceInfo = styled.div`
-	display:flex;
-	flex-direction: column;
-`
-
-const CollateralizationInfo = styled.div`
-display:flex;
-flex-direction: column;
-`
-
-const InfoLabel = styled.div`
-	font-family: Proxima Nova;
-	font-style: normal;
-	font-weight: normal;
-	font-size: 16px;
-	line-height: 19px;
-
-	/* grey */
-
-	color: #787A9B;
-	text-align: left;
-
-	&.text-right {
-		text-align: right;
-	}
-`
-
-const InfoValue = styled.div`
-	font-family: Inter;
-	font-style: normal;
-	font-weight: bold;
-	font-size: 48px;
-	line-height: 58px;
-
-	/* identical to box height */
-
-	color: #141D30;
-	text-align: left;
-	margin-top: 18px;
-
-&.text-right {
-	text-align: right;
-}
-
-&.low {
-	color: #FF5252;
-}
-
-&.mid {
-	color: #FF9839;
-}
-
-&.high {
-	color: #11D0A2;
-}
-`
-
-const PriceInfoWrapper = styled.div`
-	display:flex;
-	flex-direction: column;
-`
-
-const CollateralWrapper = styled.div`
-	display:flex;
-	flex-direction: column;
-`
-
-const PriceCollateralWrapper = styled.div`
-display:flex;
-flex-direction: row;
-margin-top: 90px;
-justify-content: space-between;
-`
-
-const CurrentPriceInfo = styled.div`
-display:flex;
-flex-direction: column;
-`
-
-const CollateralNumberInfo = styled.div`
-display:flex;
-flex-direction: column;
-`
-
-const NextPriceInfo = styled.div`
-display:flex;
-flex-direction: column;
-margin-top: 24px;
-`
-
-const CurrentPrice = styled.div`
-font-family: Inter;
-font-style: normal;
-font-weight: 600;
-font-size: 24px;
-line-height: 29px;
-/* identical to box height */
-
-
-/* semiblack */
-
-color: #4A4C67;
-text-align: left;
-margin-top: 16px;
-`
-
 // const NextPrice = styled.div`
 // font-family: Proxima Nova;
 // font-style: normal;
@@ -213,136 +73,6 @@ margin-top: 16px;
 // margin-top: 10px;
 // `
 
-const CollateralNumber = styled.div`
-font-family: Inter;
-font-style: normal;
-font-weight: 600;
-font-size: 24px;
-line-height: 29px;
-/* identical to box height */
-
-text-align: right;
-
-/* semiblack */
-
-color: #4A4C67;
-margin-top: 16px;
-`
-
-const CollateralPrice = styled.div`
-font-family: Proxima Nova;
-font-style: normal;
-font-weight: 600;
-font-size: 18px;
-line-height: 22px;
-/* identical to box height */
-
-text-align: right;
-
-/* semiblack */
-
-color: #4A4C67;
-margin-top: 24px;
-`
-
-const VaultDetailsWrapper = styled.div`
-display:flex;
-flex-direction: column;
-margin-top: 24px;
-background: #FFFFFF;
-box-shadow: 0px 15px 60px #F2F1FA;
-border-radius: 28px;
-`
-
-const VaultDetailsTitle = styled.div`
-font-family: Inter;
-font-style: normal;
-font-weight: bold;
-font-size: 18px;
-line-height: 22px;
-/* identical to box height */
-
-
-/* black */
-
-color: #26283E;
-text-align: left;
-padding: 30px;
-padding-bottom: 25px;
-`
-
-const VaultDetails = styled.div`
-
-`
-
-const VaultDetailsRow = styled.div`
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-border-top: 1px solid #F3F2FC;
-@media screen and (max-width: 576px) {
-	display: flex;
-	flex-direction: column;
-	&:not(:first-child) {
-		border-top: none;
-	}
-}
-`
-
-const VaultDetailsInfoItem = styled.div`
-display: flex;
-flex-direction: column;
-justify-content: flex-start;
-text-align: left;
-padding: 30px;
-&:not(:last-child) {
-	border-right: 1px solid #F3F2FC;
-}
-@media screen and (max-width: 576px) {
-	border-bottom: 1px solid #F3F2FC;
-	&:not(:last-child) {
-		border-right: none;
-	}
-}
-`
-
-const VaultInfoTitle = styled.div`
-font-family: Proxima Nova;
-font-style: normal;
-font-weight: normal;
-font-size: 16px;
-line-height: 19px;
-
-/* grey */
-
-color: #787A9B;
-`
-
-const VaultInfo = styled.span`
-font-family: Inter;
-font-style: normal;
-font-weight: bold;
-font-size: 16px;
-line-height: 19px;
-
-/* black */
-
-color: #26283E;
-margin-top: 8px;
-`
-
-const VaultUnit = styled.span`
-font-family: Inter;
-font-style: normal;
-font-weight: 600;
-font-size: 12px;
-line-height: 15px;
-/* identical to box height */
-
-
-/* black */
-
-margin-left: 4px;
-`
 
 const VaultConfigurator = styled.div`
 text-align: left;
@@ -636,40 +366,6 @@ outline: none;
 }
 `
 
-const VaultStatusWrapper = styled.div`
-background: #FFFFFF;
-box-shadow: 0px 15px 60px #F2F1FA;
-border-radius: 28px;
-padding: 30px;
-padding-bottom: 60px;
-`
-
-const ValueAfterWrapper = styled.div`
-  visibility: hidden;
-  text-align: left;
-  &.align-right {
-    text-align: right;
-  }
-  &.active {
-    visibility: visible;
-  }
-`
-
-const ValueAfter = styled.div`
-  box-sizing: border-box;
-  margin: 8px 0px 0px;
-  min-width: 0px;
-  border-radius: 20px;
-  background-color: #E7FCFA;
-  color: #1AAB9B;
-  font-weight: 700;
-  border: none;
-  padding: 0px 12px;
-  display: inline-block;
-  line-height: 2;
-  font-size: 12px;
-  min-width: 0px;
-`
 
 const WFTMAddButton = styled.span`
 	cursor: pointer;
@@ -806,21 +502,8 @@ function Vault() {
 		setCollateral([...collateralAmounts])
 	}
 
-  const getCollateralLockedPrice = () => {
-    return afterCollateralLocked * price
-  }
-
 	const oppositeCollateralCurrency = () => {
 		return turnCollateral ? 0 : 1
-	}
-
-	const formatNumber = (value) => {
-		let amount = parseFloat(value)
-		amount = isNaN(amount) ? 0 : amount;
-		return amount.toLocaleString('en-US', {
-			maximumFractionDigits: 2,
-			minimumFractionDigits: 2
-		})
 	}
 
 	const handleShowGenerateFUSD = (e) => {
@@ -832,22 +515,9 @@ function Vault() {
 		setGenerateFUSD(e.target.value)
 	}
 
-	const collateralStyleClass = (collateralRatio) => {
-		if (collateralRatio === '' || collateralRatio === 0) {
-			return ''
-		} else if (collateralRatio < 200) {
-			return 'low'
-		} else if (collateralRatio < 500) {
-			return 'mid'
-		} else {
-			return 'high'
-		}
-	}
-
 	const handleGenerateFUSD = async () => {
     setModalShow(true)
 		setGenerating(true)
-		
 	}
 
   const goToNextStep = async () => {
@@ -991,164 +661,25 @@ function Vault() {
 			<Header/>
 			<VaultPageWrapper>
 				<VaultInfoWrapper>
-					<VaultStatusWrapper>
-						<OpenVault>
-							<FTMImg src={FTMIcon} />
-							Open FTM Vault
-						</OpenVault>
-						<Seperator />
-						<LiquidationCollateralWrapper>
-							<LiquidationPriceInfo>
-								<InfoLabel>
-									Liquidation price
-								</InfoLabel>
-								<InfoValue>
-									${formatBalance(actualLiquidationPrice)}
-								</InfoValue>
-                <ValueAfterWrapper className={`${!compareBN(actualLiquidationPrice, afterLiquidationPrice) ? 'active' : ''}`}>
-                  <ValueAfter>
-                    ${formatBalance(afterLiquidationPrice)} after
-                  </ValueAfter>
-                </ValueAfterWrapper>
-							</LiquidationPriceInfo>
-							<VerticalSeperator/>
-							<CollateralizationInfo>
-								<InfoLabel className="text-right">
-									Collateralization ratio
-								</InfoLabel>
-								<InfoValue className={"text-right " + `${collateralStyleClass(actualCollateralRatio)}`}>
-									{formatNumber(actualCollateralRatio)}%
-								</InfoValue>
-                <ValueAfterWrapper className={`align-right ${!compareBN(actualCollateralRatio, afterCollateralRatio) ? 'active' : ''}`}>
-                  <ValueAfter>
-                    {formatNumber(afterCollateralRatio)}% after
-                  </ValueAfter>
-                </ValueAfterWrapper>
-							</CollateralizationInfo>
-						</LiquidationCollateralWrapper>
-						<PriceCollateralWrapper>
-							<PriceInfoWrapper>
-								<CurrentPriceInfo>
-									<InfoLabel>Current FTM/USD price</InfoLabel>
-									<CurrentPrice>${formatNumber(price)}</CurrentPrice>
-								</CurrentPriceInfo>
-								<NextPriceInfo>
-									{/* <InfoLabel>Next price in 10 minutes</InfoLabel>
-									<NextPrice>$0.24  (0.00%)</NextPrice> */}
-								</NextPriceInfo>
-							</PriceInfoWrapper>
-							<CollateralWrapper>
-								<CollateralNumberInfo>
-									<InfoLabel>Collateral locked</InfoLabel>
-									<CollateralNumber>${afterCollateralLocked ? formatNumber(actualCollateralLocked * price) : '--'}</CollateralNumber>
-                  <ValueAfterWrapper className={`align-right ${!compareBN(actualCollateralLocked, afterCollateralLocked) ? 'active' : ''}`}>
-                    <ValueAfter>
-                      ${afterCollateralLocked ? formatNumber(getCollateralLockedPrice()) : '--'} after
-                    </ValueAfter>
-                  </ValueAfterWrapper>
-								</CollateralNumberInfo>
-								<CollateralPrice>
-								{actualCollateralLocked ? formatNumber(actualCollateralLocked) : '--'}
-								</CollateralPrice>
-							</CollateralWrapper>
-						</PriceCollateralWrapper>
-					</VaultStatusWrapper>
-					<VaultDetailsWrapper>
-						<VaultDetailsTitle>
-							Vault details
-						</VaultDetailsTitle>
-						<VaultDetails>
-							<VaultDetailsRow>
-								<VaultDetailsInfoItem>
-									<VaultInfoTitle>
-										Vault fUSD Debt
-									</VaultInfoTitle>
-									<VaultInfo>
-										{formatBalance(actualDebt)}
-										<VaultUnit>
-										fUSD
-										</VaultUnit>
-									</VaultInfo>
-                  <ValueAfterWrapper className={`${!compareBN(actualDebt,afterDebt) ? 'active' : ''}`}>
-                    <ValueAfter>
-                      {formatBalance(afterDebt)}
-                      <VaultUnit>
-                      fUSD
-                      </VaultUnit>
-                      &nbsp;after
-                    </ValueAfter>
-                  </ValueAfterWrapper>
-								</VaultDetailsInfoItem>
-								<VaultDetailsInfoItem>
-									<VaultInfoTitle>
-									Available to withdraw
-									</VaultInfoTitle>
-									<VaultInfo>
-                    {formatNumber(maxToWithdraw)}
-                    <VaultUnit>
-                    wFTM
-                    </VaultUnit>
-									</VaultInfo>
-                  <ValueAfterWrapper className={`${!compareBN(maxToWithdraw, afterMaxToWithdraw) ? 'active' : ''}`}>
-                    <ValueAfter>
-                      {formatNumber(afterMaxToWithdraw)}
-                      <VaultUnit>
-                      wFTM
-                      </VaultUnit>
-                      &nbsp;after
-                    </ValueAfter>
-                  </ValueAfterWrapper>
-								</VaultDetailsInfoItem>
-								<VaultDetailsInfoItem>
-									<VaultInfoTitle>
-									Available to Generate
-									</VaultInfoTitle>
-                  <VaultInfo>
-                    {formatNumber(maxToMint)}
-                    <VaultUnit>
-                    USD
-                    </VaultUnit>
-									</VaultInfo>
-                  <ValueAfterWrapper className={`${!compareBN(maxToMint, afterMaxToMint) ? 'active' : ''}`}>
-                    <ValueAfter>
-                      {formatNumber(afterMaxToMint)}
-                      <VaultUnit>
-                      USD
-                      </VaultUnit>
-                      &nbsp;after
-                    </ValueAfter>
-                  </ValueAfterWrapper>
-								</VaultDetailsInfoItem>
-							</VaultDetailsRow>
-							
-							<VaultDetailsRow>
-								<VaultDetailsInfoItem>
-									<VaultInfoTitle>
-									Liquidation Ratio
-									</VaultInfoTitle>
-									<VaultInfo>
-									{formatNumber(liquidationRatio)}%
-									</VaultInfo>
-								</VaultDetailsInfoItem>
-								<VaultDetailsInfoItem>
-									<VaultInfoTitle>
-									Stability Fee
-									</VaultInfoTitle>
-									<VaultInfo>
-									{formatNumber(stabilityFee)}%
-									</VaultInfo>
-								</VaultDetailsInfoItem>
-								<VaultDetailsInfoItem>
-									<VaultInfoTitle>
-									Liquidation Penalty
-									</VaultInfoTitle>
-									<VaultInfo>
-									{formatNumber(liquidationFee)}%
-									</VaultInfo>
-								</VaultDetailsInfoItem>
-							</VaultDetailsRow>
-						</VaultDetails>
-					</VaultDetailsWrapper>
+					<VaultOverview 
+						actualLiquidationPrice={actualLiquidationPrice}
+						afterLiquidationPrice={afterLiquidationPrice}
+						actualCollateralRatio={actualCollateralRatio}
+						afterCollateralRatio={afterCollateralRatio}
+						actualCollateralLocked={actualCollateralLocked}
+						afterCollateralLocked={afterCollateralLocked}
+					/>
+					<VaultDetails
+						actualDebt={actualDebt}
+						afterDebt={afterDebt}
+						maxToWithdraw={maxToWithdraw}
+						afterMaxToWithdraw={afterMaxToWithdraw}
+						maxToMint={maxToMint}
+						afterMaxToMint={afterMaxToMint}
+						liquidationRatio={liquidationRatio}
+						stabilityFee={stabilityFee}
+						liquidationFee={liquidationFee}
+					/>
 				</VaultInfoWrapper>
 				<VaultConfigurationWrapper>
 					<VaultConfigurator>

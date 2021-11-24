@@ -35,7 +35,7 @@ export default function Web3ReactManager({ children }) {
   if (chainId !== undefined && chainId !== DestNet.ChainID) {
     return (
       <div className="flex items-center justify-center h-80">
-        <div className="text-secondary">
+        <div className="text-white">
           {`Please connect to the fantom testnet`}
         </div>
       </div>

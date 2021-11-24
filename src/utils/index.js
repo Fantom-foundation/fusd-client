@@ -50,3 +50,12 @@ export const calculateGasMargin = value => {
 export const compareBN = (val1, val2) => {
   return new BigNumber(val1).isEqualTo(val2);
 }
+
+export const formatNumber = (value) => {
+  let amount = parseFloat(value)
+  amount = isNaN(amount) ? 0 : amount;
+  return amount.toLocaleString('en-US', {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2
+  })
+}
