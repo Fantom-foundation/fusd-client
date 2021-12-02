@@ -10,7 +10,7 @@ const VaultsPageWrapper = styled.div`
 	margin: 20px 0;
   margin-top: 100px;
   background: #FFFFFF;
-  box-shadow: 2px 15px 40px 2px #edf0f4;
+  box-shadow: 0px 15px 60px #f2f1fa;
   backdrop-filter: blur(40px);
   border-radius: 36px;
   padding-top: 50px;
@@ -58,8 +58,6 @@ const RightArrowImg = styled.img`
 `
 
 const VaultInfoWrapper = styled('div')`
-background: #FFFFFF;
-box-shadow: 0px 15px 60px #F2F1FA;
 border-radius: 28px;
 margin-top: 48px;
 padding-bottom: 24px;

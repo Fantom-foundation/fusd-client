@@ -76,7 +76,7 @@ const HeaderButton = styled.button`
 
   /* black */
 
-  color: #FFF;
+  color: #26283E;
   background: transparent;
   border: none;
   outline: none;
