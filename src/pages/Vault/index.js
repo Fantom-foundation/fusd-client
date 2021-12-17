@@ -106,14 +106,14 @@ color: #787A9B;
 margin-top: 28px;
 `
 
-const DepositFTMTitleWrapper = styled.div`
+const DepositWithdrawFTMTitleWrapper = styled.div`
 display: flex;
 flex-direction: row;
 margin-top: 44px;
 justify-content: space-between;
 `
 
-const DepositFTMTitle = styled.div`
+const DepositWithdrawFTMTitle = styled.div`
 font-family: Proxima Nova;
 font-style: normal;
 font-weight: 600;
@@ -128,7 +128,7 @@ color: #26283E;
 
 `
 
-const DepositFTMBalance = styled.div`
+const DepositWithdrawFTMBalance = styled.div`
 font-family: Proxima Nova;
 font-style: normal;
 font-weight: 600;
@@ -371,6 +371,27 @@ const WFTMAddButton = styled.span`
 	cursor: pointer;
 `
 
+const DepositToggleButtonWrapper = styled.div`
+	display: flex;
+`
+
+const DepositToggleButton = styled.button`
+	padding: 8px 16px;
+	border-radius: 32px;
+	line-height: 1.25;
+	position: relative;
+	color: #6764FF;
+	background-color: #F1F3F4;
+	border: none;
+  outline: none;
+	margin-right: 15px;
+
+	&.active {
+		color: #FFFFFF;
+    background: #6764FF;
+	}
+`
+
 function Vault() {
 	const { account, chainId } = useWeb3React();
 	const defaultVaultInfo = useVaultInfo();
@@ -404,6 +425,7 @@ function Vault() {
   const [modalShow, setModalShow] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [progressing, setProgressing] = useState(false);
+	const [depositWFTM, setDepositWFTM] = useState(true);
 
   const getNewVaultInfo = () => {
     let newCollateralLocked = new BigNumber(actualCollateralLocked);
@@ -686,69 +708,146 @@ function Vault() {
 						<VaultConfiguratorTitle>Configure your Vault</VaultConfiguratorTitle>
 						<Seperator/>
 						<VaultConfiguratorDescription>
-						Simulate your vault by configuring the amount of collateral to deposit, and fUSD to generate.
-						</VaultConfiguratorDescription>
-						<DepositFTMTitleWrapper>
-							<DepositFTMTitle>Deposit <WFTMAddButton onClick={() => addWFTMToken()}>wFTM</WFTMAddButton></DepositFTMTitle>
-							<DepositFTMBalance onClick={() => changeCollateralHandler(balance[turnCollateral])}>Balance {formatNumber(balance[turnCollateral])} {cryptoCurrencies[turnCollateral]}</DepositFTMBalance>
-						</DepositFTMTitleWrapper>
-						<DepositFTMInputWrapper>
-							<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)}>
-							</DepositFTMInput>
-							<DepositUSDInput>
-							~ {formatNumber(collateral[oppositeCollateralCurrency()])} {cryptoCurrencies[oppositeCollateralCurrency()]}
-							</DepositUSDInput>
-							<DepositFTMSwapImg src={SwapIcon} onClick={handleCollateralChange}/>
-						</DepositFTMInputWrapper>
-						{
-							collateral[turnCollateral] !== '' &&
-							<ShowGenerateFUSDButton onClick={handleShowGenerateFUSD}>
-								<GenrateFUSDPlusImg src={showGenerateFUSD ? MinusIcon : PlusIcon} />
-								Generate fUSD with this transaction
-							</ShowGenerateFUSDButton>
-						}
-						{
-							showGenerateFUSD &&
-							<GenerateFUSDContainer>
-								<GenerateFUSDLabelRow>
-									<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-									<GenerateFUSDMax onClick={() => setGenerateFUSD(currentMaxToMint)}>Max {formatNumber(currentMaxToMint)} fUSD</GenerateFUSDMax>
-								</GenerateFUSDLabelRow>
-								<GenerateFUSDInputWrapper>
-									<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(currentMaxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
-									</GenerateFUSDInput>
-								</GenerateFUSDInputWrapper>
-							</GenerateFUSDContainer>
-						}
-						<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(currentMaxToMint)} onClick={() => handleGenerateFUSD()}>
 							{
-								generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
+								depositWFTM ? 
+								'Simulate your vault by configuring the amount of collateral to deposit, and fUSD to generate.' :
+								'Simulate your vault by configuring the amount of collateral to withdraw, and fUSD to payback.'
 							}
-						</GenerateFUSDButton>
+						</VaultConfiguratorDescription>
+						<DepositToggleButtonWrapper>
+							<DepositToggleButton className={depositWFTM ? 'active' : ''} onClick={() => setDepositWFTM(true)}>Deposit wFTM</DepositToggleButton>
+							<DepositToggleButton className={!depositWFTM ? 'active' : ''} onClick={() => setDepositWFTM(false)}>Withdraw wFTM</DepositToggleButton>
+						</DepositToggleButtonWrapper>
 						{
-							collateral[turnCollateral] !== '' &&
-							<FUSDVaultInfoWrapper>
-								<FUSDVaultInfoRow>
-									<FUSDVaultInfoLabel>fUSD available</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>150.3M fUSD</FUSDVaultInfo>
-								</FUSDVaultInfoRow>
-								<FUSDVaultInfoRow>
-									<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>{formatNumber(minCollateralRatio)}%</FUSDVaultInfo>
-								</FUSDVaultInfoRow>
-								<FUSDVaultInfoRow>
-									<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>{formatNumber(stabilityFee)}%</FUSDVaultInfo>
-								</FUSDVaultInfoRow>
-								<FUSDVaultInfoRow>
-									<FUSDVaultInfoLabel>Liquidation Fee</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>{formatNumber(liquidationFee)}%</FUSDVaultInfo>
-								</FUSDVaultInfoRow>
-								<FUSDVaultInfoRow>
-									<FUSDVaultInfoLabel>Dust Limit</FUSDVaultInfoLabel>
-									<FUSDVaultInfo>--</FUSDVaultInfo>
-								</FUSDVaultInfoRow>
-							</FUSDVaultInfoWrapper>
+							depositWFTM ? 
+							// Deposit wFTM
+							<>
+								<DepositWithdrawFTMTitleWrapper>
+									<DepositWithdrawFTMTitle>Deposit <WFTMAddButton onClick={() => addWFTMToken()}>wFTM</WFTMAddButton></DepositWithdrawFTMTitle>
+									<DepositWithdrawFTMBalance onClick={() => changeCollateralHandler(balance[turnCollateral])}>Balance {formatNumber(balance[turnCollateral])} {cryptoCurrencies[turnCollateral]}</DepositWithdrawFTMBalance>
+								</DepositWithdrawFTMTitleWrapper>
+								<DepositFTMInputWrapper>
+									<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)}/>
+									<DepositUSDInput>
+									~ {formatNumber(collateral[oppositeCollateralCurrency()])} {cryptoCurrencies[oppositeCollateralCurrency()]}
+									</DepositUSDInput>
+									<DepositFTMSwapImg src={SwapIcon} onClick={handleCollateralChange}/>
+								</DepositFTMInputWrapper>
+								{
+									collateral[turnCollateral] !== '' &&
+									<ShowGenerateFUSDButton onClick={handleShowGenerateFUSD}>
+										<GenrateFUSDPlusImg src={showGenerateFUSD ? MinusIcon : PlusIcon} />
+										Generate fUSD with this transaction
+									</ShowGenerateFUSDButton>
+								}
+								{
+									showGenerateFUSD &&
+									<GenerateFUSDContainer>
+										<GenerateFUSDLabelRow>
+											<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
+											<GenerateFUSDMax onClick={() => setGenerateFUSD(currentMaxToMint)}>Max {formatNumber(currentMaxToMint)} fUSD</GenerateFUSDMax>
+										</GenerateFUSDLabelRow>
+										<GenerateFUSDInputWrapper>
+											<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(currentMaxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
+											</GenerateFUSDInput>
+										</GenerateFUSDInputWrapper>
+									</GenerateFUSDContainer>
+								}
+								<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(currentMaxToMint)} onClick={() => handleGenerateFUSD()}>
+									{
+										generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
+									}
+								</GenerateFUSDButton>
+								{
+									collateral[turnCollateral] !== '' &&
+									<FUSDVaultInfoWrapper>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>fUSD available</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>150.3M fUSD</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>{formatNumber(minCollateralRatio)}%</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>{formatNumber(stabilityFee)}%</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Liquidation Fee</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>{formatNumber(liquidationFee)}%</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Dust Limit</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>--</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+									</FUSDVaultInfoWrapper>
+								}
+							</> :
+							// Withdraw wFTM
+							<>
+								<DepositWithdrawFTMTitleWrapper>
+									<DepositWithdrawFTMTitle>Withdraw <WFTMAddButton onClick={() => addWFTMToken()}>wFTM</WFTMAddButton></DepositWithdrawFTMTitle>
+									<DepositWithdrawFTMBalance onClick={() => changeCollateralHandler(actualCollateralLocked)}>Max {formatNumber(actualCollateralLocked)} {cryptoCurrencies[oppositeCollateralCurrency()]}</DepositWithdrawFTMBalance>
+								</DepositWithdrawFTMTitleWrapper>
+								<DepositFTMInputWrapper>
+									<DepositFTMInput value={collateral[oppositeCollateralCurrency()]} placeholder={'0 ' + cryptoCurrencies[oppositeCollateralCurrency()]} onChange={(e) => changeCollateralHandler(e.target.value)} />
+									<DepositUSDInput>
+									~ {formatNumber(collateral[turnCollateral])} {cryptoCurrencies[turnCollateral]}
+									</DepositUSDInput>
+									<DepositFTMSwapImg src={SwapIcon} onClick={handleCollateralChange}/>
+								</DepositFTMInputWrapper>
+								{
+									collateral[oppositeCollateralCurrency()] !== '' &&
+									<ShowGenerateFUSDButton onClick={handleShowGenerateFUSD}>
+										<GenrateFUSDPlusImg src={showGenerateFUSD ? MinusIcon : PlusIcon} />
+										Payback fUSD with this transaction
+									</ShowGenerateFUSDButton>
+								}
+								{
+									showGenerateFUSD &&
+									<GenerateFUSDContainer>
+										<GenerateFUSDLabelRow>
+											<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
+											<GenerateFUSDMax onClick={() => setGenerateFUSD(currentMaxToMint)}>Max {formatNumber(currentMaxToMint)} fUSD</GenerateFUSDMax>
+										</GenerateFUSDLabelRow>
+										<GenerateFUSDInputWrapper>
+											<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(currentMaxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
+											</GenerateFUSDInput>
+										</GenerateFUSDInputWrapper>
+									</GenerateFUSDContainer>
+								}
+								<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(currentMaxToMint)} onClick={() => handleGenerateFUSD()}>
+									{
+										generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
+									}
+								</GenerateFUSDButton>
+								{
+									collateral[oppositeCollateralCurrency()] !== '' &&
+									<FUSDVaultInfoWrapper>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>fUSD available</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>150.3M fUSD</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Min. collateral ratio</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>{formatNumber(minCollateralRatio)}%</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Stability Fee</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>{formatNumber(stabilityFee)}%</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Liquidation Fee</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>{formatNumber(liquidationFee)}%</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+										<FUSDVaultInfoRow>
+											<FUSDVaultInfoLabel>Dust Limit</FUSDVaultInfoLabel>
+											<FUSDVaultInfo>--</FUSDVaultInfo>
+										</FUSDVaultInfoRow>
+									</FUSDVaultInfoWrapper>
+								}
+							</>
 						}
 					</VaultConfigurator>
 				</VaultConfigurationWrapper>
