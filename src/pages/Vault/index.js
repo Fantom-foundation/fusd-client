@@ -405,6 +405,7 @@ function Vault() {
 	const [maxToWithdraw, setMaxToWithdraw] = useState(0)
   const [afterMaxToMint, setAfterMaxToMint] = useState(0)
 	const [currentMaxToMint, setCurrentMaxToMint] = useState(0)
+	const [currentMaxToWithdraw, setCurrentMaxToWithdraw] = useState(0)
 	const [afterMaxToWithdraw, setAfterMaxToWithdraw] = useState(0)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
@@ -430,14 +431,14 @@ function Vault() {
   const getNewVaultInfo = () => {
     let newCollateralLocked = new BigNumber(actualCollateralLocked);
     if (collateral[0]) {
-      newCollateralLocked = newCollateralLocked.plus(new BigNumber(collateral[0]))
+      newCollateralLocked = newCollateralLocked.plus(new BigNumber(collateral[0]).multipliedBy(depositWFTM ? 1 : -1))
     }
     const newAfterCollateralLocked = newCollateralLocked.toString()
     setAfterCollateralLocked(newAfterCollateralLocked)
 
     let newDebt = new BigNumber(actualDebt)
     if (generateFUSD) {
-      newDebt = newDebt.plus(new BigNumber(generateFUSD))
+      newDebt = newDebt.plus(new BigNumber(generateFUSD).multipliedBy(depositWFTM ? 1 : -1))
     }
     const dbt = newDebt.toString()
     setAfterDebt(dbt)
@@ -590,18 +591,20 @@ function Vault() {
   const getAvailableToGenerateWithChanges = async () => {
     try {
       let decimalM = new BigNumber(10).pow(18);
-      let collateralDiff = new BigNumber(collateral[0] === '' ? 0 : collateral[0]).multipliedBy(decimalM);
-      let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD).multipliedBy(decimalM);
+      let collateralDiff = new BigNumber(collateral[0] === '' ? 0 : collateral[0]).multipliedBy(decimalM).multipliedBy(depositWFTM ? 1 : -1);
+      let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD).multipliedBy(decimalM).multipliedBy(depositWFTM ? 1 : -1);
       let available = await getMaxToMintWithChanges(account, collateralDiff.toString(), debtDiff.toString());
 			available = available === undefined ? 0 : available;
       available = ethers.utils.formatEther(available)
       setAfterMaxToMint(available)
 
-			debtDiff = new BigNumber(0).multipliedBy(decimalM);
-      available = await getMaxToMintWithChanges(account, collateralDiff.toString(), debtDiff.toString());
-			available = available === undefined ? 0 : available;
-      available = ethers.utils.formatEther(available)
-			setCurrentMaxToMint(available)
+			if (depositWFTM) {
+				debtDiff = new BigNumber(0).multipliedBy(decimalM);
+				available = await getMaxToMintWithChanges(account, collateralDiff.toString(), debtDiff.toString());
+				available = available === undefined ? 0 : available;
+				available = ethers.utils.formatEther(available)
+				setCurrentMaxToMint(available)
+			}
     } catch (e) {
       console.log(e);
       setAfterMaxToMint(0)
@@ -622,11 +625,19 @@ function Vault() {
   const getAvailableToWithdrawWithChanges = async () => {
     try {
       let decimalM = new BigNumber(10).pow(18);
-      let collateralDiff = new BigNumber(collateral[0] === '' ? 0 : collateral[0]).multipliedBy(decimalM);
-      let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD).multipliedBy(decimalM);
+      let collateralDiff = new BigNumber(collateral[0] === '' ? 0 : collateral[0]).multipliedBy(decimalM).multipliedBy(depositWFTM ? 1 : -1);
+      let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD).multipliedBy(decimalM).multipliedBy(depositWFTM ? 1 : -1);
       let available = await getMaxToWithdrawWithChanges(account, collateralDiff.toString(), debtDiff.toString());
       available = ethers.utils.formatEther(available)
       setAfterMaxToWithdraw(available)
+
+			if (!depositWFTM) {
+				debtDiff = new BigNumber(0).multipliedBy(decimalM).multipliedBy(depositWFTM ? 1 : -1);
+				available = await getMaxToWithdrawWithChanges(account, collateralDiff.toString(), debtDiff.toString());
+				available = available === undefined ? 0 : available;
+				available = ethers.utils.formatEther(available)
+				setCurrentMaxToWithdraw(available)
+			}
     } catch (e) {
       console.log(e);
       setAfterMaxToWithdraw(0)
@@ -788,12 +799,12 @@ function Vault() {
 							<>
 								<DepositWithdrawFTMTitleWrapper>
 									<DepositWithdrawFTMTitle>Withdraw <WFTMAddButton onClick={() => addWFTMToken()}>wFTM</WFTMAddButton></DepositWithdrawFTMTitle>
-									<DepositWithdrawFTMBalance onClick={() => changeCollateralHandler(actualCollateralLocked)}>Max {formatNumber(actualCollateralLocked)} {cryptoCurrencies[oppositeCollateralCurrency()]}</DepositWithdrawFTMBalance>
+									<DepositWithdrawFTMBalance onClick={() => changeCollateralHandler(actualCollateralLocked)}>Max {formatNumber(actualCollateralLocked)} {cryptoCurrencies[turnCollateral]}</DepositWithdrawFTMBalance>
 								</DepositWithdrawFTMTitleWrapper>
 								<DepositFTMInputWrapper>
-									<DepositFTMInput value={collateral[oppositeCollateralCurrency()]} placeholder={'0 ' + cryptoCurrencies[oppositeCollateralCurrency()]} onChange={(e) => changeCollateralHandler(e.target.value)} />
+									<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)} />
 									<DepositUSDInput>
-									~ {formatNumber(collateral[turnCollateral])} {cryptoCurrencies[turnCollateral]}
+									~ {formatNumber(collateral[oppositeCollateralCurrency()])} {cryptoCurrencies[oppositeCollateralCurrency()]}
 									</DepositUSDInput>
 									<DepositFTMSwapImg src={SwapIcon} onClick={handleCollateralChange}/>
 								</DepositFTMInputWrapper>
@@ -808,18 +819,18 @@ function Vault() {
 									showGenerateFUSD &&
 									<GenerateFUSDContainer>
 										<GenerateFUSDLabelRow>
-											<GenerateFUSDLabel>Generate fUSD</GenerateFUSDLabel>
-											<GenerateFUSDMax onClick={() => setGenerateFUSD(currentMaxToMint)}>Max {formatNumber(currentMaxToMint)} fUSD</GenerateFUSDMax>
+											<GenerateFUSDLabel>Payback fUSD</GenerateFUSDLabel>
+											<GenerateFUSDMax onClick={() => setGenerateFUSD(actualDebt)}>Max {formatNumber(actualDebt)} fUSD</GenerateFUSDMax>
 										</GenerateFUSDLabelRow>
 										<GenerateFUSDInputWrapper>
-											<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(currentMaxToMint) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
+											<GenerateFUSDInput value={generateFUSD} placeholder={formatNumber(actualDebt) + ' fUSD'} onChange={(e) => handleGenerateFUSDChange(e)}>
 											</GenerateFUSDInput>
 										</GenerateFUSDInputWrapper>
 									</GenerateFUSDContainer>
 								}
-								<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(currentMaxToMint)} onClick={() => handleGenerateFUSD()}>
+								<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(currentMaxToWithdraw)} onClick={() => handleGenerateFUSD()}>
 									{
-										generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'
+										generateFUSD === '' ? 'Enter an amount' : 'Payback fUSD'
 									}
 								</GenerateFUSDButton>
 								{
