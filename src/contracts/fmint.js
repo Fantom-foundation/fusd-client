@@ -64,9 +64,21 @@ export const useFMintContract = () => {
     await tx.wait();
   };
 
+  const mustWithdraw = async (address, value) => {
+    const contract = await getFMintContract();
+    const tx = await contract.mustWithdraw(address, value);
+    await tx.wait();
+  };
+
   const mustMint = async (address, value) => {
     const contract = await getFMintContract();
     const tx = await contract.mustMint(address, value);
+    await tx.wait();
+  };
+
+  const mustRepay = async (address, value) => {
+    const contract = await getFMintContract();
+    const tx = await contract.mustRepay(address, value);
     await tx.wait();
   };
 
@@ -163,7 +175,9 @@ export const useFMintContract = () => {
     fmintAddress,
     getFMintBalance,
     mustDeposit,
+    mustWithdraw,
     mustMint,
+    mustRepay,
     getCollateralValue,
     getMinCollateralRatio,
     getDebtValue,

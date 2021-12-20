@@ -35,10 +35,18 @@ export const useFUSDContract = () => {
     await tx.wait();
   };
 
+  const increaseFUSDAllowance = async (address, value) => {
+    const contract = await getFUSDContract();
+    const tx = await contract.increaseAllowance(address, value);
+    await tx.wait();
+    return tx;
+  };
+
   return {
     fusdAddress,
     getFUSDBalance,
     getAllowance,
     approve,
+    increaseFUSDAllowance,
   };
 };
