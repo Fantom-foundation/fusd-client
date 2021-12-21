@@ -9,7 +9,7 @@ import SwapIcon from '../../assets/icons/swap.svg'
 import PlusIcon from '../../assets/icons/plus.svg'
 import MinusIcon from '../../assets/icons/minus.svg'
 import { useEffect, useState } from 'react';
-import { useWFTMContract, useFMintContract } from '../../contracts';
+import { useWFTMContract, useFMintContract, useFUSDContract } from '../../contracts';
 import { FMINT_CONTRACT_ADDRESS, FUSD_CONTRACT_ADDRESS, WFTM_CONTRACT_ADDRESS } from '../../constants/walletconnection'
 import BigNumber from "bignumber.js";
 import useVaultInfo from '../../hooks/useVaultInfo';
@@ -405,12 +405,12 @@ function Vault() {
 	const [maxToWithdraw, setMaxToWithdraw] = useState(0)
   const [afterMaxToMint, setAfterMaxToMint] = useState(0)
 	const [currentMaxToMint, setCurrentMaxToMint] = useState(0)
-	const [currentMaxToWithdraw, setCurrentMaxToWithdraw] = useState(0)
 	const [afterMaxToWithdraw, setAfterMaxToWithdraw] = useState(0)
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
-	const { mustDeposit, mustMint, getMaxToWithdraw, getMaxToWithdrawWithChanges, getMaxToMint, getMaxToMintWithChanges } = useFMintContract();
+	const { mustDeposit, mustWithdraw, mustMint, mustRepay, getMaxToWithdraw, getMaxToWithdrawWithChanges, getMaxToMint, getMaxToMintWithChanges } = useFMintContract();
+	const { increaseFUSDAllowance } = useFUSDContract();
 	const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
 	const liquidationRatio = defaultVaultInfo.minCollateralRatio;
 	const stabilityFee = 0;
@@ -549,19 +549,36 @@ function Vault() {
     
     setProgressing(true);
 		try {
-      if (activeStep === 1) {
-        if (!depositAmount.isEqualTo(new BigNumber(0))) {
-          await increaseAllowance(FMINT_CONTRACT_ADDRESS[chainId], depositAmount.toString());
-        }
-      } else if (activeStep === 2) {
-        if (!depositAmount.isEqualTo(new BigNumber(0))) {
-          await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
-        }
-      } else if (activeStep === 3) {
-        const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
-        await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
-        initialize();
-      }
+			if (depositWFTM) { // Minting fUSD
+				if (activeStep === 1) {
+					if (!depositAmount.isEqualTo(new BigNumber(0))) {
+						await increaseAllowance(FMINT_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+					}
+				} else if (activeStep === 2) {
+					if (!depositAmount.isEqualTo(new BigNumber(0))) {
+						await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+					}
+				} else if (activeStep === 3) {
+					const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
+					await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
+					initialize();
+				}
+			} else { // Repaying fUSD
+				if (activeStep === 1) {
+					if (!depositAmount.isEqualTo(new BigNumber(0))) {
+						await increaseAllowance(FMINT_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+					}
+				} else if (activeStep === 2) {
+					if (!depositAmount.isEqualTo(new BigNumber(0))) {
+						await mustWithdraw(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
+					}
+				} else if (activeStep === 3) {
+					const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
+					await increaseFUSDAllowance(FMINT_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
+					await mustRepay(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
+					initialize();
+				}
+			}
 		} catch (error) {
       setGenerating(false)
       setActiveStep(1)
@@ -630,14 +647,6 @@ function Vault() {
       let available = await getMaxToWithdrawWithChanges(account, collateralDiff.toString(), debtDiff.toString());
       available = ethers.utils.formatEther(available)
       setAfterMaxToWithdraw(available)
-
-			if (!depositWFTM) {
-				debtDiff = new BigNumber(0).multipliedBy(decimalM).multipliedBy(depositWFTM ? 1 : -1);
-				available = await getMaxToWithdrawWithChanges(account, collateralDiff.toString(), debtDiff.toString());
-				available = available === undefined ? 0 : available;
-				available = ethers.utils.formatEther(available)
-				setCurrentMaxToWithdraw(available)
-			}
     } catch (e) {
       console.log(e);
       setAfterMaxToWithdraw(0)
@@ -799,7 +808,7 @@ function Vault() {
 							<>
 								<DepositWithdrawFTMTitleWrapper>
 									<DepositWithdrawFTMTitle>Withdraw <WFTMAddButton onClick={() => addWFTMToken()}>wFTM</WFTMAddButton></DepositWithdrawFTMTitle>
-									<DepositWithdrawFTMBalance onClick={() => changeCollateralHandler(actualCollateralLocked)}>Max {formatNumber(actualCollateralLocked)} {cryptoCurrencies[turnCollateral]}</DepositWithdrawFTMBalance>
+									<DepositWithdrawFTMBalance onClick={() => changeCollateralHandler(maxToWithdraw)}>Max {formatNumber(maxToWithdraw)} {cryptoCurrencies[turnCollateral]}</DepositWithdrawFTMBalance>
 								</DepositWithdrawFTMTitleWrapper>
 								<DepositFTMInputWrapper>
 									<DepositFTMInput value={collateral[turnCollateral]} placeholder={'0 ' + cryptoCurrencies[turnCollateral]} onChange={(e) => changeCollateralHandler(e.target.value)} />
@@ -828,7 +837,7 @@ function Vault() {
 										</GenerateFUSDInputWrapper>
 									</GenerateFUSDContainer>
 								}
-								<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(currentMaxToWithdraw)} onClick={() => handleGenerateFUSD()}>
+								<GenerateFUSDButton disabled={generateFUSD === '' || generating || parseFloat(generateFUSD) === 0 || parseFloat(generateFUSD) > parseFloat(formatNumber(actualDebt)) || parseFloat(collateral[turnCollateral]) > parseFloat(maxToWithdraw)} onClick={() => handleGenerateFUSD()}>
 									{
 										generateFUSD === '' ? 'Enter an amount' : 'Payback fUSD'
 									}
