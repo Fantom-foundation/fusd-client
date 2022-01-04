@@ -616,7 +616,7 @@ function Header() {
                 </WrapBoxRow>
               </WrapBoxWrapper>
               <WrapBoxRow>
-                <WrapButton onClick={() => wrapButtonClickHandler()} disabled={wrapAmount === '' || wrapping || (wrapUnwrap && wrapAmount > ftmBalance) || (!wrapUnwrap && wrapAmount > wFTMBalance)}>
+                <WrapButton onClick={() => wrapButtonClickHandler()} disabled={wrapAmount === '' || wrapping || (wrapUnwrap && wrapAmount * 1.0 > ftmBalance) || (!wrapUnwrap && wrapAmount * 1.0 > wFTMBalance)}>
                   {wrapUnwrap ? 'Wrap' : 'Unwrap'}
                 </WrapButton>
               </WrapBoxRow>
