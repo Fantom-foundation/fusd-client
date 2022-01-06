@@ -76,6 +76,12 @@ export const useFMintContract = () => {
     await tx.wait();
   };
 
+  const mustMintMax = async (address, value) => {
+    const contract = await getFMintContract();
+    const tx = await contract.mustMintMax(address, value);
+    await tx.wait();
+  };
+
   const mustRepay = async (address, value) => {
     const contract = await getFMintContract();
     const tx = await contract.mustRepay(address, value);
@@ -177,6 +183,7 @@ export const useFMintContract = () => {
     mustDeposit,
     mustWithdraw,
     mustMint,
+    mustMintMax,
     mustRepay,
     getCollateralValue,
     getMinCollateralRatio,

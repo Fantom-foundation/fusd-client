@@ -51,7 +51,7 @@ const Step = styled.div`
 
 function StepBar(props) {
 	const steps = [1, 2, 3];
-  console.log(props.step)
+
   return (
     <StepBarContainer>
       <StepContainer>

@@ -409,7 +409,7 @@ function Vault() {
 	const cryptoCurrencies = ['wFTM', 'USD']
 	const { price } = useSelector(state => state.Price);
 	const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } = useWFTMContract();
-	const { mustDeposit, mustWithdraw, mustMint, mustRepay, getMaxToWithdraw, getMaxToWithdrawWithChanges, getMaxToMint, getMaxToMintWithChanges } = useFMintContract();
+	const { mustDeposit, mustWithdraw, mustMint, mustMintMax, mustRepay, getMaxToWithdraw, getMaxToWithdrawWithChanges, getMaxToMint, getMaxToMintWithChanges } = useFMintContract();
 	const { increaseFUSDAllowance } = useFUSDContract();
 	const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
 	const liquidationRatio = defaultVaultInfo.minCollateralRatio;
@@ -559,8 +559,15 @@ function Vault() {
 						await mustDeposit(WFTM_CONTRACT_ADDRESS[chainId], depositAmount.toString());
 					}
 				} else if (activeStep === 3) {
-					const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals)
-					await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
+					const available = await getMaxToMint(account);
+          const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals);
+          
+          if (fusdAmount > available) {
+            await mustMintMax(FUSD_CONTRACT_ADDRESS[chainId], 30000);
+          } else {
+            await mustMint(FUSD_CONTRACT_ADDRESS[chainId], fusdAmount.toString());
+          }
+
 					initialize();
 				}
 			} else { // Repaying fUSD
