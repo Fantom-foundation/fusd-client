@@ -814,6 +814,32 @@ function Vault() {
     setGenerating(false);
   };
 
+  const generateFUSDButtonDisable = () => {
+    if (depositWFTM) {
+      return (
+        generateFUSD === '' ||
+        generating ||
+        parseFloat(generateFUSD) === 0 ||
+        parseFloat(generateFUSD) > parseFloat(currentMaxToMint)
+      );
+    }
+    return (
+      !collateral[0] ||
+      collateral[0] * 1 === 0 ||
+      collateral[0] * 1 > maxToWithdraw * 1
+    );
+  };
+
+  const generateFUSDButtonText = () => {
+    console.log('actualDebt: ', actualDebt);
+    if (!depositWFTM) {
+      if (generateFUSD) return 'Withdraw and Payback';
+      else return 'Withdraw';
+    }
+    if (generateFUSD === '') return 'Enter an amount';
+    return 'Generate fUSD';
+  };
+
   return (
     <div>
       <Header />
@@ -927,14 +953,18 @@ function Vault() {
                 )}
                 <GenerateFUSDButton
                   disabled={
-                    generateFUSD === '' ||
+                    /*generateFUSD === '' ||
                     generating ||
                     parseFloat(generateFUSD) === 0 ||
-                    parseFloat(generateFUSD) > parseFloat(currentMaxToMint)
+                    parseFloat(generateFUSD) > parseFloat(currentMaxToMint)*/
+                    generateFUSDButtonDisable()
                   }
                   onClick={() => handleGenerateFUSD()}
                 >
-                  {generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'}
+                  {
+                    /*generateFUSD === '' ? 'Enter an amount' : 'Generate fUSD'*/
+                    generateFUSDButtonText()
+                  }
                 </GenerateFUSDButton>
                 {collateral[turnCollateral] !== '' && (
                   <FUSDVaultInfoWrapper>
@@ -1001,15 +1031,17 @@ function Vault() {
                     onClick={handleCollateralChange}
                   />
                 </DepositFTMInputWrapper>
-                {collateral[oppositeCollateralCurrency()] !== '' && (
-                  <ShowGenerateFUSDButton onClick={handleShowGenerateFUSD}>
-                    <GenrateFUSDPlusImg
-                      src={showGenerateFUSD ? MinusIcon : PlusIcon}
-                    />
-                    Payback fUSD with this transaction
-                  </ShowGenerateFUSDButton>
-                )}
-                {showGenerateFUSD && (
+                {collateral[oppositeCollateralCurrency()] !== '' &&
+                  actualDebt !== '' &&
+                  actualDebt > 0 && (
+                    <ShowGenerateFUSDButton onClick={handleShowGenerateFUSD}>
+                      <GenrateFUSDPlusImg
+                        src={showGenerateFUSD ? MinusIcon : PlusIcon}
+                      />
+                      Payback fUSD with this transaction
+                    </ShowGenerateFUSDButton>
+                  )}
+                {showGenerateFUSD && actualDebt !== '' && actualDebt > 0 && (
                   <GenerateFUSDContainer>
                     <GenerateFUSDLabelRow>
                       <GenerateFUSDLabel>Payback fUSD</GenerateFUSDLabel>
@@ -1030,17 +1062,21 @@ function Vault() {
                 )}
                 <GenerateFUSDButton
                   disabled={
-                    generateFUSD === '' ||
+                    /*generateFUSD === '' ||
                     generating ||
                     parseFloat(generateFUSD) === 0 ||
                     parseFloat(generateFUSD) >
                       parseFloat(formatNumber(actualDebt)) ||
                     parseFloat(collateral[turnCollateral]) >
-                      parseFloat(maxToWithdraw)
+                      parseFloat(maxToWithdraw)*/
+                    generateFUSDButtonDisable()
                   }
                   onClick={() => handleGenerateFUSD()}
                 >
-                  {generateFUSD === '' ? 'Enter an amount' : 'Payback fUSD'}
+                  {
+                    /*generateFUSD === '' ? 'Enter an amount' : 'Payback fUSD'*/
+                    generateFUSDButtonText()
+                  }
                 </GenerateFUSDButton>
                 {collateral[oppositeCollateralCurrency()] !== '' && (
                   <FUSDVaultInfoWrapper>
