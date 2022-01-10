@@ -424,6 +424,7 @@ function Vault() {
     getMaxToMint,
     getMaxToMintWithChanges,
     getDebtBalance,
+    getCollateralBalance,
   } = useFMintContract();
   const { increaseFUSDAllowance } = useFUSDContract();
   const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
@@ -590,13 +591,9 @@ function Vault() {
         } else if (activeStep === 3) {
           const available = await getMaxToMint(account);
           const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals);
-          console.log(`available: ${available}`);
-          console.log(`fusdAmount: ${fusdAmount}`);
           if (fusdAmount > available) {
-            console.log('fusdAmount is greater than available');
             await mustMintMax(FUSD_CONTRACT_ADDRESS[chainId], 30000);
           } else {
-            console.log('OK');
             await mustMint(
               FUSD_CONTRACT_ADDRESS[chainId],
               fusdAmount.toString()
@@ -697,6 +694,14 @@ function Vault() {
         if (debtDiff2 > debtBalance) {
           debtDiff = new BigNumber(debtBalance.toString()).multipliedBy(-1);
         }
+
+        let collateralBalance = await getCollateralBalance(account);
+        let collateralDiff2 = collateralDiff.multipliedBy(-1);
+        if (collateralDiff2 > collateralBalance) {
+          collateralDiff = new BigNumber(
+            collateralBalance.toString()
+          ).multipliedBy(-1);
+        }
       }
 
       let available = await getMaxToMintWithChanges(
@@ -747,15 +752,23 @@ function Vault() {
       let debtDiff = new BigNumber(generateFUSD === '' ? 0 : generateFUSD)
         .multipliedBy(decimalM)
         .multipliedBy(depositWFTM ? 1 : -1);
-      console.log(`collateralDiff: ${collateralDiff}`);
-      console.log(`debtDiff: ${debtDiff}`);
+
       if (!depositWFTM) {
         let debtBalance = await getDebtBalance(account);
         let debtDiff2 = debtDiff.multipliedBy(-1);
         if (debtDiff2 > debtBalance) {
           debtDiff = new BigNumber(debtBalance.toString()).multipliedBy(-1);
         }
+
+        let collateralBalance = await getCollateralBalance(account);
+        let collateralDiff2 = collateralDiff.multipliedBy(-1);
+        if (collateralDiff2 > collateralBalance) {
+          collateralDiff = new BigNumber(
+            collateralBalance.toString()
+          ).multipliedBy(-1);
+        }
       }
+
       let available = await getMaxToWithdrawWithChanges(
         account,
         collateralDiff.toString(),
@@ -824,14 +837,17 @@ function Vault() {
       );
     }
     return (
-      !collateral[0] ||
-      collateral[0] * 1 === 0 ||
-      collateral[0] * 1 > maxToWithdraw * 1
+      (!collateral[0] ||
+        collateral[0] * 1 === 0 ||
+        collateral[0] * 1 > maxToWithdraw * 1) &&
+      (!generateFUSD ||
+        generateFUSD === '' ||
+        parseFloat(generateFUSD) === 0 ||
+        parseFloat(generateFUSD) > parseFloat(actualDebt))
     );
   };
 
   const generateFUSDButtonText = () => {
-    console.log('actualDebt: ', actualDebt);
     if (!depositWFTM) {
       if (generateFUSD) return 'Withdraw and Payback';
       else return 'Withdraw';
