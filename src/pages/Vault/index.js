@@ -833,7 +833,8 @@ function Vault() {
         generateFUSD === '' ||
         generating ||
         parseFloat(generateFUSD) === 0 ||
-        parseFloat(generateFUSD) > parseFloat(currentMaxToMint)
+        parseFloat(generateFUSD) > parseFloat(currentMaxToMint) ||
+        collateral[turnCollateral] > balance[turnCollateral]
       );
     }
     return (
