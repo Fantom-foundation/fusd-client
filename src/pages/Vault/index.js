@@ -591,7 +591,7 @@ function Vault() {
         } else if (activeStep === 3) {
           const available = await getMaxToMint(account);
           const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals);
-          if (fusdAmount > available) {
+          if (fusdAmount.toString() * 1 >= available.toString() * 1) {
             await mustMintMax(FUSD_CONTRACT_ADDRESS[chainId], 30000);
           } else {
             await mustMint(
@@ -637,7 +637,7 @@ function Vault() {
               decimals
             );
             const debtBalance = await getDebtBalance(account);
-            if (fusdAmount > debtBalance) {
+            if (fusdAmount.toString() * 1 >= debtBalance.toString() * 1) {
               await mustRepayMax(FUSD_CONTRACT_ADDRESS[chainId]);
             } else {
               await mustRepay(
@@ -691,13 +691,16 @@ function Vault() {
       if (!depositWFTM) {
         let debtBalance = await getDebtBalance(account);
         let debtDiff2 = debtDiff.multipliedBy(-1);
-        if (debtDiff2 > debtBalance) {
+        if (debtDiff2.toString() * 1 >= debtBalance.toString() * 1) {
           debtDiff = new BigNumber(debtBalance.toString()).multipliedBy(-1);
         }
 
         let collateralBalance = await getCollateralBalance(account);
         let collateralDiff2 = collateralDiff.multipliedBy(-1);
-        if (collateralDiff2 > collateralBalance) {
+        if (
+          collateralDiff2.toString() * 1 >=
+          collateralBalance.toString() * 1
+        ) {
           collateralDiff = new BigNumber(
             collateralBalance.toString()
           ).multipliedBy(-1);
@@ -756,19 +759,21 @@ function Vault() {
       if (!depositWFTM) {
         let debtBalance = await getDebtBalance(account);
         let debtDiff2 = debtDiff.multipliedBy(-1);
-        if (debtDiff2 > debtBalance) {
+        if (debtDiff2.toString() * 1 >= debtBalance.toString() * 1) {
           debtDiff = new BigNumber(debtBalance.toString()).multipliedBy(-1);
         }
 
         let collateralBalance = await getCollateralBalance(account);
         let collateralDiff2 = collateralDiff.multipliedBy(-1);
-        if (collateralDiff2 > collateralBalance) {
+        if (
+          collateralDiff2.toString() * 1 >=
+          collateralBalance.toString() * 1
+        ) {
           collateralDiff = new BigNumber(
             collateralBalance.toString()
           ).multipliedBy(-1);
         }
       }
-
       let available = await getMaxToWithdrawWithChanges(
         account,
         collateralDiff.toString(),
