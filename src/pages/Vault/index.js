@@ -408,6 +408,7 @@ function Vault() {
   const [afterMaxToMint, setAfterMaxToMint] = useState(0);
   const [currentMaxToMint, setCurrentMaxToMint] = useState(0);
   const [afterMaxToWithdraw, setAfterMaxToWithdraw] = useState(0);
+  const [fUSDWalletBalance, setFUSDWalletBalance] = useState(0);
   const cryptoCurrencies = ['wFTM', 'USD'];
   const { price } = useSelector((state) => state.Price);
   const { getWFTMBalance, increaseAllowance, wftmDecimals, wftmSymbol } =
@@ -426,7 +427,7 @@ function Vault() {
     getDebtBalance,
     getCollateralBalance,
   } = useFMintContract();
-  const { increaseFUSDAllowance } = useFUSDContract();
+  const { increaseFUSDAllowance, getFUSDBalance } = useFUSDContract();
   const minCollateralRatio = defaultVaultInfo.minCollateralRatio;
   const liquidationRatio = defaultVaultInfo.minCollateralRatio;
   const stabilityFee = 0;
@@ -524,6 +525,8 @@ function Vault() {
     ftmBalance = BigNumber(ftmBalance);
     const priceBN = BigNumber(price);
     let usdBalance = ftmBalance.multipliedBy(priceBN);
+    let fUSDWalletBalance = await getFUSDBalance(account);
+    setFUSDWalletBalance(fUSDWalletBalance);
     const balance = [ftmBalance, usdBalance];
     setBalance(balance);
   };
@@ -842,6 +845,10 @@ function Vault() {
         collateral[turnCollateral] > balance[turnCollateral]
       );
     }
+    let decimalM = new BigNumber(10).pow(18);
+    let paybackFUSD = new BigNumber(
+      !generateFUSD || generateFUSD === '' ? 0 : generateFUSD
+    ).multipliedBy(decimalM);
     return (
       (!collateral[0] ||
         collateral[0] * 1 === 0 ||
@@ -849,7 +856,8 @@ function Vault() {
       (!generateFUSD ||
         generateFUSD === '' ||
         parseFloat(generateFUSD) === 0 ||
-        parseFloat(generateFUSD) > parseFloat(actualDebt))
+        parseFloat(generateFUSD) > parseFloat(actualDebt) ||
+        paybackFUSD.toString() * 1 > fUSDWalletBalance.toString() * 1)
     );
   };
 
@@ -1066,7 +1074,10 @@ function Vault() {
                 {showGenerateFUSD && actualDebt !== '' && actualDebt > 0 && (
                   <GenerateFUSDContainer>
                     <GenerateFUSDLabelRow>
-                      <GenerateFUSDLabel>Payback fUSD</GenerateFUSDLabel>
+                      <GenerateFUSDLabel>
+                        Payback fUSD (Available in Wallet{' '}
+                        {ethers.utils.formatEther(fUSDWalletBalance) * 1})
+                      </GenerateFUSDLabel>
                       <GenerateFUSDMax
                         onClick={() => setGenerateFUSD(actualDebt)}
                       >
