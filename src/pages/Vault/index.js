@@ -854,7 +854,8 @@ function Vault() {
         generating ||
         parseFloat(generateFUSD) === 0 ||
         parseFloat(generateFUSD) > parseFloat(currentMaxToMint) ||
-        collateral[turnCollateral] > balance[turnCollateral]
+        collateral[turnCollateral].toString() * 1 >
+          balance[turnCollateral].toString() * 1
       );
     }
     let decimalM = new BigNumber(10).pow(18);
