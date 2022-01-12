@@ -445,6 +445,7 @@ function Vault() {
   const [activeStep, setActiveStep] = useState(1);
   const [progressing, setProgressing] = useState(false);
   const [depositWFTM, setDepositWFTM] = useState(true);
+  const [minimalPaybackText, setMinimalPaybackText] = useState('');
 
   const getNewVaultInfo = () => {
     let newCollateralLocked = new BigNumber(actualCollateralLocked);
@@ -519,8 +520,30 @@ function Vault() {
     getNewVaultInfo();
     getAvailableToGenerateWithChanges();
     getAvailableToWithdrawWithChanges();
+    getMinimalPaybackText();
   }, [collateral, generateFUSD]);
 
+  const getMinimalPaybackText = () => {
+    let paybackFUSD = !generateFUSD || generateFUSD === '' ? 0 : generateFUSD;
+    if (
+      formatNumber(actualDebt) * 1 - paybackFUSD * 1 < 1 &&
+      formatNumber(actualDebt) * 1 - paybackFUSD * 1 > 0
+    ) {
+      if (formatNumber(actualDebt) == 1) {
+        setMinimalPaybackText(
+          `Please payback in full ${formatNumber(actualDebt)}.`
+        );
+      } else {
+        setMinimalPaybackText(
+          `Please payback in full ${formatNumber(actualDebt)} or ${
+            actualDebt * 1 - 1
+          } or less.`
+        );
+      }
+    } else {
+      setMinimalPaybackText('');
+    }
+  };
   const getBalance = async () => {
     let ftmBalance = await getWFTMBalance(account);
     ftmBalance = BigNumber(ftmBalance);
@@ -928,15 +951,19 @@ function Vault() {
     let paybackFUSD = new BigNumber(
       !generateFUSD || generateFUSD === '' ? 0 : generateFUSD
     ).multipliedBy(decimalM);
+    let paybackFUSD2 = !generateFUSD || generateFUSD === '' ? 0 : generateFUSD;
     return (
-      (!collateral[0] ||
+      ((!collateral[0] ||
         collateral[0] * 1 === 0 ||
         collateral[0] * 1 > maxToWithdraw * 1) &&
-      (!generateFUSD ||
-        generateFUSD === '' ||
-        parseFloat(generateFUSD) === 0 ||
-        parseFloat(generateFUSD) > parseFloat(actualDebt) ||
-        paybackFUSD.toString() * 1 > fUSDWalletBalance.toString() * 1)
+        (!generateFUSD ||
+          generateFUSD === '' ||
+          parseFloat(generateFUSD) === 0 ||
+          parseFloat(generateFUSD) > parseFloat(actualDebt) ||
+          paybackFUSD.toString() * 1 > fUSDWalletBalance.toString() * 1)) ||
+      (formatNumber(actualDebt) * 1 - paybackFUSD2 * 1 < 1 &&
+        formatNumber(actualDebt) * 1 - paybackFUSD2 * 1 > 0 &&
+        formatNumber(actualDebt) * 1 > 0)
     );
   };
 
@@ -1170,6 +1197,7 @@ function Vault() {
                         onChange={(e) => handleGenerateFUSDChange(e)}
                       ></GenerateFUSDInput>
                     </GenerateFUSDInputWrapper>
+                    <div style={{ color: 'red' }}>{minimalPaybackText}</div>
                   </GenerateFUSDContainer>
                 )}
                 <GenerateFUSDButton
