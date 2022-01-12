@@ -416,6 +416,7 @@ function Vault() {
   const {
     mustDeposit,
     mustWithdraw,
+    mustWithdrawMax,
     mustMint,
     mustMintMax,
     mustRepay,
@@ -624,10 +625,21 @@ function Vault() {
           }
         } else if (activeStep === 2) {
           if (!depositAmount.isEqualTo(new BigNumber(0))) {
-            await mustWithdraw(
-              WFTM_CONTRACT_ADDRESS[chainId],
-              depositAmount.toString()
-            );
+            let collateralBalance = await getCollateralBalance(account);
+            console.log('depositAmount: ', depositAmount.toString());
+            console.log('collateralBalance: ', collateralBalance.toString());
+            //if (depositAmount.isGreaterThanOrEqualTo(collateralBalance)) {  //not working IE
+            if (
+              depositAmount.toString() * 1 >=
+              collateralBalance.toString() * 1
+            ) {
+              await mustWithdrawMax(WFTM_CONTRACT_ADDRESS[chainId], 30000);
+            } else {
+              await mustWithdraw(
+                WFTM_CONTRACT_ADDRESS[chainId],
+                depositAmount.toString()
+              );
+            }
           }
         } else if (activeStep === 3) {
           /*const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals);
