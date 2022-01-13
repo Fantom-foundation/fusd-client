@@ -617,81 +617,20 @@ function Vault() {
           }
         } else if (activeStep === 3) {
           const available = await getMaxToMint(account);
-          const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals);
-
-          if (fusdAmount > available) {
-            await mustMintMax(FUSD_CONTRACT_ADDRESS[chainId], 30000);
-          } else {
-            await mustMint(
-              FUSD_CONTRACT_ADDRESS[chainId],
-              fusdAmount.toString()
-            );
+          const fusdAmount = new BigNumber(
+            generateFUSD === '' ? 0 : generateFUSD
+          ).multipliedBy(decimals);
+          if (!fusdAmount.isEqualTo(new BigNumber(0))) {
+            if (fusdAmount.toString() * 1 >= available.toString() * 1) {
+              await mustMintMax(FUSD_CONTRACT_ADDRESS[chainId], 30000);
+            } else {
+              await mustMint(
+                FUSD_CONTRACT_ADDRESS[chainId],
+                fusdAmount.toString()
+              );
+            }
           }
 
-          initialize();
-        }
-      } else {
-        // Repaying fUSD
-        if (activeStep === 1) {
-          if (!depositAmount.isEqualTo(new BigNumber(0))) {
-            await increaseAllowance(
-              FMINT_CONTRACT_ADDRESS[chainId],
-              depositAmount.toString()
-            );
-          }
-        } else if (activeStep === 2) {
-          if (!depositAmount.isEqualTo(new BigNumber(0))) {
-            await mustWithdraw(
-              WFTM_CONTRACT_ADDRESS[chainId],
-              depositAmount.toString()
-            );
-          }
-        } else if (activeStep === 3) {
-          const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals);
-          await increaseFUSDAllowance(
-            FMINT_CONTRACT_ADDRESS[chainId],
-            fusdAmount.toString()
-          );
-          await mustRepay(
-            FUSD_CONTRACT_ADDRESS[chainId],
-            fusdAmount.toString()
-          );
-          initialize();
-        }
-      }
-    } catch (error) {
-      setGenerating(false);
-      setActiveStep(1);
-      console.log(error);
-    }
-    try {
-      if (depositWFTM) {
-        // Minting fUSD
-        if (activeStep === 1) {
-          if (!depositAmount.isEqualTo(new BigNumber(0))) {
-            await increaseAllowance(
-              FMINT_CONTRACT_ADDRESS[chainId],
-              depositAmount.toString()
-            );
-          }
-        } else if (activeStep === 2) {
-          if (!depositAmount.isEqualTo(new BigNumber(0))) {
-            await mustDeposit(
-              WFTM_CONTRACT_ADDRESS[chainId],
-              depositAmount.toString()
-            );
-          }
-        } else if (activeStep === 3) {
-          const available = await getMaxToMint(account);
-          const fusdAmount = new BigNumber(generateFUSD).multipliedBy(decimals);
-          if (fusdAmount.toString() * 1 >= available.toString() * 1) {
-            await mustMintMax(FUSD_CONTRACT_ADDRESS[chainId], 30000);
-          } else {
-            await mustMint(
-              FUSD_CONTRACT_ADDRESS[chainId],
-              fusdAmount.toString()
-            );
-          }
           initialize();
         }
       } else {
@@ -715,8 +654,6 @@ function Vault() {
         } else if (activeStep === 2) {
           if (!depositAmount.isEqualTo(new BigNumber(0))) {
             let collateralBalance = await getCollateralBalance(account);
-            console.log('depositAmount: ', depositAmount.toString());
-            console.log('collateralBalance: ', collateralBalance.toString());
             //if (depositAmount.isGreaterThanOrEqualTo(collateralBalance)) {  //not working IE
             if (
               depositAmount.toString() * 1 >=
@@ -939,14 +876,16 @@ function Vault() {
   const generateFUSDButtonDisable = () => {
     if (depositWFTM) {
       return (
-        generateFUSD === '' ||
-        generating ||
-        parseFloat(generateFUSD) === 0 ||
+        //  generateFUSD === '' ||
+        //  generating ||
+        //  parseFloat(generateFUSD) === 0 ||
         parseFloat(generateFUSD) > parseFloat(currentMaxToMint) ||
-        collateral[turnCollateral].toString() * 1 >
-          balance[turnCollateral].toString() * 1
+        (collateral[turnCollateral].toString() * 1 >
+          balance[turnCollateral].toString() * 1 &&
+          collateral[turnCollateral] * 1 === 0)
       );
     }
+
     let decimalM = new BigNumber(10).pow(18);
     let paybackFUSD = new BigNumber(
       !generateFUSD || generateFUSD === '' ? 0 : generateFUSD
@@ -972,7 +911,16 @@ function Vault() {
       if (generateFUSD) return 'Withdraw and Payback';
       else return 'Withdraw';
     }
-    if (generateFUSD === '') return 'Enter an amount';
+    if (
+      (generateFUSD === '' || parseFloat(generateFUSD) === 0) &&
+      collateral[turnCollateral] * 1 === 0
+    )
+      return 'Enter an amount';
+    if (
+      (generateFUSD === '' || parseFloat(generateFUSD) === 0) &&
+      collateral[turnCollateral] * 1 > 0
+    )
+      return 'Deposit';
     return 'Generate fUSD';
   };
 
