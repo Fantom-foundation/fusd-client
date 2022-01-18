@@ -195,15 +195,18 @@ function Account() {
         .then(function (response) {
           const data = response.data;
           if (data.success === true) {
-            toast.success('Registered successfully!', {
-              position: 'top-right',
-              autoClose: 3000,
-              hideProgressBar: true,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-            });
+            toast.success(
+              register ? 'Registered successfully!' : 'Updated successfully',
+              {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+              }
+            );
           } else {
             if (data.message === 'ACCOUNT_ALREADY_EXIST') {
               msg = 'Account with the same address or email already exists';
