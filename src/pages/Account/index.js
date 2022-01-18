@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { urls } from '../../constants/urls';
 import axios from 'axios';
@@ -95,16 +95,78 @@ const FormButton = styled.button`
 function Account() {
   const { account } = useWeb3React();
   const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [register, setRegister] = useState(true);
+
+  useEffect(() => {
+    //Runs on the first render and when account changes
+    setLoading(true);
+    axios.get(`${urls.api_url}/account/${account}`).then(function (response) {
+      const data = response.data;
+      console.log(data.data);
+
+      if (data.success) {
+        if (data.data) {
+          setName(data.data.name);
+          setEmail(data.data.email);
+          setRegister(false);
+        } else {
+          setName('');
+          setEmail('');
+          setRegister(true);
+        }
+      } else {
+      }
+
+      setLoading(false);
+    });
+  }, [account]);
+
+  const handleNameChange = (e) => {
+    setName(e.target.value);
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+  };
 
   const handleSubmit = (e) => {
     let msg = 'An error occured while registring account. Please try again.';
     try {
       const form = e.target;
-      console.log(form.password.value);
-      if (form.password.value != form.confirmPassword.value) {
+
+      if (register && form.password.value != form.confirmPassword.value) {
         e.preventDefault();
         e.stopPropagation();
-        toast.error(`Confirm Password doesn't match`);
+        toast.error(`Confirm Password doesn't match`, {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
+        return;
+      }
+
+      if (
+        !register &&
+        form.newPassword.value != form.confirmNewPassword.value
+      ) {
+        console.log('here1');
+        e.preventDefault();
+        e.stopPropagation();
+        toast.error(`Confirm Password doesn't match`, {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
         return;
       }
 
@@ -113,6 +175,7 @@ function Account() {
         email: form.email.value,
         address: account,
         password: form.password.value,
+        newPassword: register ? '' : form.newPassword.value,
       };
 
       if (form.checkValidity() === false) {
@@ -122,8 +185,9 @@ function Account() {
       }
 
       setLoading(true);
+      const url = register ? 'register-account' : 'update-account';
       axios
-        .post(`${urls.api_url}/register-account`, JSON.stringify(params), {
+        .post(`${urls.api_url}/${url}`, JSON.stringify(params), {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -143,6 +207,9 @@ function Account() {
           } else {
             if (data.message === 'ACCOUNT_ALREADY_EXIST') {
               msg = 'Account with the same address or email already exists';
+            }
+            if (data.message === `WRONG_PASSWORD`) {
+              msg = 'Wrong password!';
             }
 
             toast.error(msg, {
@@ -180,12 +247,23 @@ function Account() {
       <AccountSettingsForm onSubmit={handleSubmit}>
         <FormRow>
           <FormLabel>Name</FormLabel>
-          <FormInput name='name' required></FormInput>
+          <FormInput
+            name='name'
+            required
+            value={name}
+            onChange={handleNameChange}
+          ></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
         <FormRow>
           <FormLabel>Email</FormLabel>
-          <FormInput type='email' name='email' required></FormInput>
+          <FormInput
+            type='email'
+            name='email'
+            required
+            value={email}
+            onChange={handleEmailChange}
+          ></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
         <FormRow>
@@ -193,15 +271,31 @@ function Account() {
           <FormInput type='password' name='password' required></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
-        <FormRow>
-          <FormLabel>Confirm Password</FormLabel>
-          <FormInput
-            type='password'
-            name='confirmPassword'
-            required
-          ></FormInput>
-          <FormSpan></FormSpan>
-        </FormRow>
+        {register && (
+          <FormRow>
+            <FormLabel>Confirm Password</FormLabel>
+            <FormInput
+              type='password'
+              name='confirmPassword'
+              required
+            ></FormInput>
+            <FormSpan></FormSpan>
+          </FormRow>
+        )}
+        {!register && (
+          <FormRow>
+            <FormLabel>New Password</FormLabel>
+            <FormInput type='password' name='newPassword'></FormInput>
+            <FormSpan></FormSpan>
+          </FormRow>
+        )}
+        {!register && (
+          <FormRow>
+            <FormLabel>Confirm New Password</FormLabel>
+            <FormInput type='password' name='confirmNewPassword'></FormInput>
+            <FormSpan></FormSpan>
+          </FormRow>
+        )}
         <FormButton disabled={loading}>
           {loading ? (
             <ClipLoader color='#EFF3FB' loading={loading} size={24} />
