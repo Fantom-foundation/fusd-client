@@ -100,7 +100,8 @@ function Account() {
     let msg = 'An error occured while registring account. Please try again.';
     try {
       const form = e.target;
-      if (form.password != form.confirmPassword) {
+      console.log(form.password.value);
+      if (form.password.value != form.confirmPassword.value) {
         e.preventDefault();
         e.stopPropagation();
         toast.error(`Confirm Password doesn't match`);
@@ -111,6 +112,7 @@ function Account() {
         name: form.name.value,
         email: form.email.value,
         address: account,
+        password: form.password.value,
       };
 
       if (form.checkValidity() === false) {
