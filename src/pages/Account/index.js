@@ -104,7 +104,6 @@ function Account() {
     setLoading(true);
     axios.get(`${urls.api_url}/account/${account}`).then(function (response) {
       const data = response.data;
-      console.log(data.data);
 
       if (data.success) {
         if (data.data) {
@@ -155,7 +154,6 @@ function Account() {
         !register &&
         form.newPassword.value != form.confirmNewPassword.value
       ) {
-        console.log('here1');
         e.preventDefault();
         e.stopPropagation();
         toast.error(`Confirm Password doesn't match`, {
@@ -246,7 +244,9 @@ function Account() {
   return (
     <div>
       <Header />
-      <h1 className='page-title'>Account Settings</h1>
+      <h1 className='page-title'>
+        {register ? 'Account Register' : 'Account Update'}
+      </h1>
       <AccountSettingsForm onSubmit={handleSubmit}>
         <FormRow>
           <FormLabel>Name</FormLabel>
