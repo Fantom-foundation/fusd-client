@@ -529,7 +529,10 @@ function Header() {
       {active ? (
         <>
           <HeaderButtonsContainer>
-            <HeaderButton onClick={(e) => history.push('/vaults')}>
+            <HeaderButton onClick={e => history.push('/auctions')}>
+              Auctions
+            </HeaderButton>
+            <HeaderButton onClick={e => history.push('/vaults')}>
               My vault
             </HeaderButton>
             {collateral === 0 && (
