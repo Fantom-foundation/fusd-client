@@ -131,24 +131,23 @@ function Account() {
   };
 
   const handleForgotPassword = (e) => {
+    setLoading(true);
     axios
       .get(`${urls.api_url}/send-reset-link/${account}`)
       .then(function (response) {
+        setLoading(false);
         const data = response.data;
         if (data.success) {
           if (data.emailFound) {
-            toast.info(
-              `An email with a reset link has been sent to your email address.`,
-              {
-                position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-              }
-            );
+            toast.info(`A reset link has been sent to your email address.`, {
+              position: 'top-right',
+              autoClose: 3000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+            });
           } else {
             toast.warning(`No email associated with your account.`, {
               position: 'top-right',
