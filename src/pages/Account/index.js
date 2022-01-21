@@ -130,6 +130,49 @@ function Account() {
     setEmail(e.target.value);
   };
 
+  const handleForgotPassword = (e) => {
+    axios
+      .get(`${urls.api_url}/send-reset-link/${account}`)
+      .then(function (response) {
+        const data = response.data;
+        if (data.success) {
+          if (data.emailFound) {
+            toast.info(
+              `An email with a reset link has been sent to your email address.`,
+              {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+              }
+            );
+          } else {
+            toast.warning(`No email associated with your account.`, {
+              position: 'top-right',
+              autoClose: 3000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+            });
+          }
+        } else {
+          toast.error(`An error has occured!`, {
+            position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+          });
+        }
+      });
+  };
   const handleSubmit = (e) => {
     let msg = 'An error occured while registring account. Please try again.';
     try {
@@ -270,7 +313,21 @@ function Account() {
           <FormSpan></FormSpan>
         </FormRow>
         <FormRow>
-          <FormLabel>Password</FormLabel>
+          <FormLabel>
+            {register ? (
+              'Password'
+            ) : (
+              <div>
+                Password{' '}
+                <span
+                  onClick={handleForgotPassword}
+                  style={{ cursor: 'pointer' }}
+                >
+                  (Forgot Password?)
+                </span>
+              </div>
+            )}
+          </FormLabel>
           <FormInput type='password' name='password' required></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
