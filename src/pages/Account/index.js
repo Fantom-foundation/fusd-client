@@ -141,77 +141,25 @@ function Account() {
     setEmail(e.target.value);
   };
 
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
-
-  const handleConfirmPasswordChange = (e) => {
-    setConfirmPassword(e.target.value);
-  };
-
-  const handleNewPasswordChange = (e) => {
-    setNewPassword(e.target.value);
-  };
-
-  const handleConfirmNewPasswordChange = (e) => {
-    setConfirmNewPassword(e.target.value);
-  };
-
-  const disableButton = () => {
-    if (loading) return true;
-    if (
-      register &&
-      (!name ||
-        !email ||
-        !password ||
-        password != confirmPassword ||
-        !validateEmail(email))
-    ) {
-      return true;
-    }
-    if (
-      !register &&
-      (!name ||
-        !email ||
-        !password ||
-        newPassword != confirmNewPassword ||
-        !validateEmail(email))
-    ) {
-      return true;
-    }
-    return false;
-  };
-
-  const errorText = () => {
-    var text = '';
-    if (!name) text = 'Name is required. ';
-    if (!email) text += 'Email is required. ';
-    if (!validateEmail(email)) text += 'Email is invalid. ';
-    if (!password) text += 'Password is required. ';
-    if (register && password != confirmPassword)
-      text += 'Confirm Password does not match. ';
-    if (!register && newPassword != confirmNewPassword)
-      text += 'Confirm New Password does not match. ';
-    return text;
-  };
   const handleForgotPassword = (e) => {
-    setLoading(true);
     axios
       .get(`${urls.api_url}/send-reset-link/${account}`)
       .then(function (response) {
-        setLoading(false);
         const data = response.data;
         if (data.success) {
           if (data.emailFound) {
-            toast.info(`A reset link has been sent to your email address.`, {
-              position: 'top-right',
-              autoClose: 3000,
-              hideProgressBar: true,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-            });
+            toast.info(
+              `An email with a reset link has been sent to your email address.`,
+              {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+              }
+            );
           } else {
             toast.warning(`No email associated with your account.`, {
               position: 'top-right',
@@ -409,6 +357,7 @@ function Account() {
             onChange={handlePasswordChange}
             required
           ></FormInput>
+          <FormInput type='password' name='password' required></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
         {register && (
