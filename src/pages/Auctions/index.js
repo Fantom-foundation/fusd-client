@@ -1,18 +1,14 @@
-import { useHistory } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
+import axios from 'axios'
 import Header from '../../components/Header';
-import RightArrowIcon from '../../assets/icons/right_arrow.svg'
-import FTMIcon from '../../assets/icons/ftm.svg'
-import { formatBalance } from '../../utils'
-import useAuctionInfo from '../../hooks/useAuctionInfo'
+import { urls } from '../../constants/urls'
+import { ethers } from 'ethers';
 
 const AuctionListPageWrapper = styled.div`
 	margin: 20px 0;
   margin-top: 100px;
-  background: #FFFFFF;
-  box-shadow: 0px 15px 60px #f2f1fa;
-  backdrop-filter: blur(40px);
-  border-radius: 36px;
+  
   padding-top: 50px;
 `
 
@@ -57,51 +53,45 @@ const RightArrowImg = styled.img`
   fill: white;
 `
 
-const AuctionInfoWrapper = styled('div')`
+const AuctionInfoWrapper = styled('ul')`
 border-radius: 28px;
 margin-top: 48px;
 padding-bottom: 24px;
+display: grid;
+grid-template-columns: repeat(3,1fr);
+grid-gap: calc(0.5rem * 3);
+list-style: none;
+`
+
+const AuctionItem = styled.li`
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 30px;
+  box-shadow: 0px 15px 60px #f2f1fa;
+  backdrop-filter: blur(40px);
+  border-radius: 28px;
+  @media screen and (max-width: 576px) {
+    border-bottom: 1px solid #F3F2FC;
+    &:not(:last-child) {
+      border-right: none;
+    }
+  }
+}
+`
+
+const AuctionItemHeader = styled.label`
+cursor: pointer;
+font-weight: bold;
+margin: 10px 0;
 `
 
 const AuctionInfoRow = styled.div`
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-border-top: 1px solid #F3F2FC;
-@media screen and (max-width: 576px) {
-	display: flex;
-	flex-direction: column;
-	&:not(:first-child) {
-		border-top: none;
-	}
-}
-`
-const AuctionDetailsInfoItem = styled.div`
-display: flex;
-flex-direction: column;
-justify-content: flex-start;
-text-align: left;
-padding: 30px;
-@media screen and (max-width: 576px) {
-	border-bottom: 1px solid #F3F2FC;
-	&:not(:last-child) {
-		border-right: none;
-	}
-}
-`
-
-const AssetInfoItem = styled.div`
 display: flex;
 flex-direction: row;
-justify-content: flex-start;
-align-items: center;
-text-align: left;
-padding: 30px;
-@media screen and (max-width: 576px) {
-	border-bottom: 1px solid #F3F2FC;
-	&:not(:last-child) {
-		border-right: none;
-	}
-}
+justify-content: space-between;
 `
 
 const AuctionInfoTitle = styled.div`
@@ -119,14 +109,12 @@ color: #787A9B;
 const AuctionInfo = styled.span`
 font-family: Inter;
 font-style: normal;
-font-weight: bold;
 font-size: 16px;
 line-height: 19px;
 
 /* black */
 
 color: #26283E;
-margin-top: 8px;
 `
 
 const AssetInfo = styled.span`
@@ -181,77 +169,58 @@ const ManageAuctionButton = styled.button`
 `
 
 function AuctionList() {
-  let history = useHistory()
-  const vaultInfo = useAuctionInfo();
-  const collateralRatio = formatBalance(vaultInfo.collateralRatio);
-  const collateral = formatBalance(vaultInfo.collateral);
-  const liquidationPrice = formatBalance(vaultInfo.liquidationPrice);
-  const debt = formatBalance(vaultInfo.debt);
+  console.log('sdf')
+  const [auctions, setAuctions] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${urls.auction_api_url}/auctions`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(function (response) {
+      if (response.data !== null) {
+        setAuctions(response.data)
+      }
+    });
+  }, []);
 
 	return (
 		<div>
 			<Header/>
 			<AuctionListPageWrapper>
         {
-          collateral !== undefined && collateral !== '0' ?
-          <>
-            <h1 className="page-title">My Auction</h1>
+          auctions.length > 0 ? 
             <AuctionInfoWrapper>
-              <AuctionInfoRow>
-                <AuctionDetailsInfoItem>
+            {auctions.map((auction) => (
+              <AuctionItem>
+                <AuctionItemHeader>
+                  Auction Information
+                </AuctionItemHeader>
+                <AuctionInfoRow>
                   <AuctionInfoTitle>
-                    Liquidation Price
+                    Target
                   </AuctionInfoTitle>
                   <AuctionInfo>
-                    ${liquidationPrice}
+                    {auction.blockNumber}
                   </AuctionInfo>
-                </AuctionDetailsInfoItem>
-                <AuctionDetailsInfoItem>
+                </AuctionInfoRow>
+                <AuctionInfoRow>
                   <AuctionInfoTitle>
-                    Collateral Ratio
+                    Remaining Percentage
                   </AuctionInfoTitle>
                   <AuctionInfo>
-                    {collateralRatio}%
+                    {ethers.utils.parseEther(auction.remainingPercentage)}
                   </AuctionInfo>
-                </AuctionDetailsInfoItem>
-                <AuctionDetailsInfoItem>
-                  <AuctionInfoTitle>
-                    Collateral Locked
-                  </AuctionInfoTitle>
-                  <AuctionInfo>
-                    {formatBalance(collateral)} WFTM
-                  </AuctionInfo>
-                </AuctionDetailsInfoItem>
-                <AuctionDetailsInfoItem>
-                  <AuctionInfoTitle>
-                    fUSD Debt
-                  </AuctionInfoTitle>
-                  <AuctionInfo>
-                    {debt} FUSD
-                  </AuctionInfo>
-                </AuctionDetailsInfoItem>
-              </AuctionInfoRow>
-              <AuctionInfoRow>
-                <AssetInfoItem>
-                  <FTMImg src={FTMIcon} />
-                  <AssetInfo>WFTM</AssetInfo>
-                </AssetInfoItem>
-              </AuctionInfoRow>
-              <ManageAuctionButton onClick={() => history.push("/vault")}>
-                Manage Auction
-              </ManageAuctionButton>
+                </AuctionInfoRow>
+              </AuctionItem>
+            ))}
             </AuctionInfoWrapper>
-          </>
           :
           <>
-            <h1 className="page-title">You have no open AuctionList</h1>
+            <h1 className="page-title">No auctions now.</h1>
             <PageBodyText>
               <p>Open a Fantom Auction, deposit your collateral, and generate fUSD against it.</p>
             </PageBodyText>
-            <OpenAuctionButton onClick={() => history.push("/vault")}>
-              Open a vault
-              <RightArrowImg src={RightArrowIcon}></RightArrowImg>
-            </OpenAuctionButton>
           </>
         }
 			</AuctionListPageWrapper>
