@@ -92,12 +92,23 @@ const FormButton = styled.button`
   }
 `;
 
+const validateEmail = (email) => {
+  if (!email) return true;
+  const re =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+};
+
 function Account() {
   const { account } = useWeb3React();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [register, setRegister] = useState(true);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   useEffect(() => {
     //Runs on the first render and when account changes
@@ -130,6 +141,46 @@ function Account() {
     setEmail(e.target.value);
   };
 
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    setConfirmNewPassword(e.target.value);
+  };
+
+  const handleNewPasswordChange = (e) => {
+    setNewPassword(e.target.value);
+  };
+
+  const handleConfirmNewPasswordChange = (e) => {
+    setConfirmNewPassword(e.target.value);
+  };
+
+  const disableButton = () => {
+    if (loading) return true;
+    if (
+      register &&
+      (!name ||
+        !email ||
+        !password ||
+        password != confirmPassword ||
+        !validateEmail(email))
+    ) {
+      return true;
+    }
+    if (
+      !register &&
+      (!name ||
+        !email ||
+        !password ||
+        newPassword != confirmNewPassword ||
+        !validateEmail(email))
+    ) {
+      return true;
+    }
+    return false;
+  };
   const handleForgotPassword = (e) => {
     setLoading(true);
     axios
@@ -177,7 +228,21 @@ function Account() {
     try {
       const form = e.target;
 
-      if (register && form.password.value != form.confirmPassword.value) {
+      if (!validateEmail(email)) {
+        e.preventDefault();
+        e.stopPropagation();
+        toast.error(`The email is not correct`, {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
+        return;
+      }
+      if (register && password != confirmPassword) {
         e.preventDefault();
         e.stopPropagation();
         toast.error(`Confirm Password doesn't match`, {
@@ -192,10 +257,7 @@ function Account() {
         return;
       }
 
-      if (
-        !register &&
-        form.newPassword.value != form.confirmNewPassword.value
-      ) {
+      if (!register && newPassword.value != confirmNewPassword.value) {
         e.preventDefault();
         e.stopPropagation();
         toast.error(`Confirm Password doesn't match`, {
@@ -211,11 +273,11 @@ function Account() {
       }
 
       const params = {
-        name: form.name.value,
-        email: form.email.value,
+        name: name,
+        email: email,
         address: account,
-        password: form.password.value,
-        newPassword: register ? '' : form.newPassword.value,
+        password: password,
+        newPassword: register ? '' : newPassword,
       };
 
       if (form.checkValidity() === false) {
@@ -327,7 +389,13 @@ function Account() {
               </div>
             )}
           </FormLabel>
-          <FormInput type='password' name='password' required></FormInput>
+          <FormInput
+            type='password'
+            name='password'
+            value={password}
+            onChange={handlePasswordChange}
+            required
+          ></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
         {register && (
@@ -336,6 +404,8 @@ function Account() {
             <FormInput
               type='password'
               name='confirmPassword'
+              value={confirmPassword}
+              onChange={handleConfirmPasswordChange}
               required
             ></FormInput>
             <FormSpan></FormSpan>
@@ -344,18 +414,35 @@ function Account() {
         {!register && (
           <FormRow>
             <FormLabel>New Password</FormLabel>
-            <FormInput type='password' name='newPassword'></FormInput>
+            <FormInput
+              type='password'
+              name='newPassword'
+              value={newPassword}
+              onChange={handleNewPasswordChange}
+            ></FormInput>
             <FormSpan></FormSpan>
           </FormRow>
         )}
         {!register && (
           <FormRow>
             <FormLabel>Confirm New Password</FormLabel>
-            <FormInput type='password' name='confirmNewPassword'></FormInput>
+            <FormInput
+              type='password'
+              name='confirmNewPassword'
+              value={confirmNewPassword}
+              onChange={handleConfirmNewPasswordChange}
+            ></FormInput>
             <FormSpan></FormSpan>
           </FormRow>
         )}
-        <FormButton disabled={loading}>
+        {!validateEmail(email) && (
+          <FormRow>
+            <FormLabel>
+              <span style={{ color: 'red' }}>Invalid Email</span>
+            </FormLabel>
+          </FormRow>
+        )}
+        <FormButton disabled={disableButton()}>
           {loading ? (
             <ClipLoader color='#EFF3FB' loading={loading} size={24} />
           ) : (

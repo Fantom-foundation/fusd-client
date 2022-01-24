@@ -142,7 +142,7 @@ function ResetPassword() {
             progress: undefined,
           });
         } else {
-          toast.error(`An error has occured!`, {
+          toast.error(data.msg, {
             position: 'top-right',
             autoClose: 3000,
             hideProgressBar: true,
@@ -190,6 +190,15 @@ function ResetPassword() {
           ></FormInput>
           <FormSpan></FormSpan>
         </FormRow>
+        {password != confirmPassword && (
+          <FormRow>
+            <FormLabel>
+              <span style={{ color: 'red' }}>
+                Confirm New Password doesn't match.
+              </span>
+            </FormLabel>
+          </FormRow>
+        )}
         <FormButton
           disabled={
             !password || !confirmPassword || password != confirmPassword
