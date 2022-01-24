@@ -146,7 +146,7 @@ function Account() {
   };
 
   const handleConfirmPasswordChange = (e) => {
-    setConfirmNewPassword(e.target.value);
+    setConfirmPassword(e.target.value);
   };
 
   const handleNewPasswordChange = (e) => {
@@ -180,6 +180,19 @@ function Account() {
       return true;
     }
     return false;
+  };
+
+  const errorText = () => {
+    var text = '';
+    if (!name) text = 'Name is required. ';
+    if (!email) text += 'Email is required. ';
+    if (!validateEmail(email)) text += 'Email is invalid. ';
+    if (!password) text += 'Password is required. ';
+    if (register && password != confirmPassword)
+      text += 'Confirm Password does not match. ';
+    if (!register && newPassword != confirmNewPassword)
+      text += 'Confirm New Password does not match. ';
+    return text;
   };
   const handleForgotPassword = (e) => {
     setLoading(true);
@@ -435,10 +448,10 @@ function Account() {
             <FormSpan></FormSpan>
           </FormRow>
         )}
-        {!validateEmail(email) && (
+        {disableButton() && (
           <FormRow>
             <FormLabel>
-              <span style={{ color: 'red' }}>Invalid Email</span>
+              <span style={{ color: 'red' }}>{errorText()}</span>
             </FormLabel>
           </FormRow>
         )}
