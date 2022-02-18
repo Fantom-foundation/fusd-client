@@ -174,10 +174,11 @@ function padZero(number) {
 }
 
 function AuctionList() {
-  //console.log('sdf');
+  console.log('sdf');
   const [auctions, setAuctions] = useState([]);
 
   useEffect(() => {
+    console.log(`${urls.auction_api_url}/auctions`);
     axios
       .get(`${urls.auction_api_url}/auctions`, {
         headers: {

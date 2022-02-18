@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Home from '../../pages/Home';
 import Connect from '../../pages/Connect';
 import Account from '../../pages/Account';
+import Auctions from '../../pages/Auctions';
 import ResetPassword from '../../pages/ResetPassword';
 import Vault from '../../pages/Vault';
 import Vaults from '../../pages/Vaults';
@@ -71,8 +72,8 @@ function App() {
           <Route path='/vault'>
             <Vault />
           </Route>
-          <Route path='/vaults'>
-            <Vaults />
+          <Route path='/auctions'>
+            <Auctions />
           </Route>
           <Route path='/'>
             <Home />
