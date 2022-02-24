@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import Header from '../../components/Header';
 import { urls } from '../../constants/urls';
 import { ethers } from 'ethers';
+import {
+  useLiquidationManagerContract,
+  useFUSDContract,
+} from '../../contracts';
+import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
+import BigNumber from 'bignumber.js';
+import { useWeb3React } from '@web3-react/core';
 
 const AuctionListPageWrapper = styled.div`
   margin: 20px 0;
@@ -175,6 +183,27 @@ function padZero(number) {
 
 function AuctionList() {
   console.log('sdf');
+  const { account, chainId } = useWeb3React();
+
+  const { bidAuction } = useLiquidationManagerContract();
+  const { approve, getFUSDBalance } = useFUSDContract();
+
+  const doBidding = async (nonce) => {
+    console.log('hello1');
+    let fUSDBalance = await getFUSDBalance(account);
+    console.log('hello2');
+    alert(fUSDBalance);
+
+    const decimals = BigNumber('10').pow(18);
+    const amountToApprove = BigNumber('20').multipliedBy(decimals);
+    await approve(
+      LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
+      amountToApprove.toString()
+    );
+    //var percentage = BigNumber('10').pow(16);
+    //await bidAuction(nonce, percentage);
+  };
+
   const [auctions, setAuctions] = useState([]);
 
   useEffect(() => {
@@ -203,7 +232,7 @@ function AuctionList() {
         {auctions.length > 0 ? (
           <AuctionInfoWrapper>
             {auctions.map((auction, index) => (
-              <AuctionItem key={index}>
+              <AuctionItem key={index} onClick={(e) => doBidding(index)}>
                 <AuctionItemHeader>Auction Information</AuctionItemHeader>
                 <AuctionInfoRow>
                   <AuctionInfoTitle>Target</AuctionInfoTitle>
