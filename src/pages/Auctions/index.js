@@ -10,7 +10,7 @@ import { Modal } from 'react-bootstrap';
 import { ethers } from 'ethers';
 import {
   useLiquidationManagerContract,
-  useFUSDContract
+  useFUSDContract,
 } from '../../contracts';
 import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
 import BigNumber from 'bignumber.js';
@@ -241,6 +241,11 @@ const WrapBoxAmountInput = styled.input`
   flex: 1 1 auto;
 `;
 
+const WrapBoxInputMax = styled.div`
+  color: #6764ff;
+  cursor: pointer;
+`;
+
 const WrapButton = styled.button`
   font-family: Inter;
   font-style: normal;
@@ -275,26 +280,50 @@ function AuctionList() {
   //console.log('sdf');
   const [auctions, setAuctions] = useState([]);
   const [modalShow, setModalShow] = useState(false);
+  const [nonceToBid, setNonceToBid] = useState(0);
+  const [maxPercentageToBid, setMaxPercentageToBid] = useState(0);
+  const [percentageToBid, setPercentageToBid] = useState(0);
+  const [initiatorBonusToBid, setInitiatorBonusToBid] = useState(0);
+  const [maxDebtValue, setMaxDebtValue] = useState(0);
 
   const { account, chainId } = useWeb3React();
 
   const { bidAuction } = useLiquidationManagerContract();
   const { approve, getFUSDBalance } = useFUSDContract();
 
-  const doBidding = async (nonce) => {
-    console.log(nonce);
-    let fUSDBalance = await getFUSDBalance(account);
+  const openBidDialog = async (
+    nonce,
+    maxPercentage,
+    maxDebtValue,
+    initiatorBonus
+  ) => {
+    setNonceToBid(nonce);
+    setMaxPercentageToBid(maxPercentage);
+    setMaxDebtValue(maxDebtValue);
+    setInitiatorBonusToBid(initiatorBonus);
+    setModalShow(true);
+  };
+
+  const placeBid = async (percentage) => {
+    console.log('nonceToBid: ', nonceToBid);
+    console.log('maxDebtValue: ', maxDebtValue);
+    console.log('initiatorBonusToBid: ', initiatorBonusToBid);
+    console.log('maxPercentageToBid :', maxPercentageToBid);
+    console.log('percentage :', percentage);
+
+    /* let fUSDBalance = await getFUSDBalance(account);
     console.log(fUSDBalance);
 
+    const decimals = BigNumber('10').pow(18);
+
     if (fUSDBalance.toString() * 1 != 0) {
-      const decimals = BigNumber('10').pow(18);
       const amountToApprove = BigNumber('20').multipliedBy(decimals);
       await approve(
         LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
         amountToApprove.toString()
       );
-      //var percentage = BigNumber('10').pow(16);
-      //await bidAuction(nonce, percentage);
+      //percentage = BigNumber(percentage.toString()).multipliedBy(BigNumber('10').pow(14));
+      //await bidAuction(nonce, percentage, initiatorBonus);
     } else {
       toast.warning(`You don't have enough FUSD to buy the auction.`, {
         position: 'top-right',
@@ -303,9 +332,9 @@ function AuctionList() {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
-        progress: undefined
+        progress: undefined,
       });
-    }
+    } */
   };
 
   useEffect(() => {
@@ -313,15 +342,12 @@ function AuctionList() {
     axios
       .get(`${urls.auction_api_url}/auctions`, {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       })
       .then(function (response) {
-        console.log(response);
+        //console.log(response);
         if (response.data !== null) {
-          for (var i = 0; i < response.data.length; i++) {
-            response.data[i].initiatorBonus = '100000000000000000';
-          }
           setAuctions(response.data);
         }
       })
@@ -340,7 +366,15 @@ function AuctionList() {
               <AuctionItem
                 key={index}
                 // onClick={(e) => doBidding(auction.nonce)}
-                onClick={(e) => setModalShow(true)}
+                onClick={(e) => {
+                  setPercentageToBid(0);
+                  openBidDialog(
+                    auction.nonce,
+                    auction.remainingPercentage.toString() / 10 ** 16,
+                    (auction.debtValue[0].toString() / 10 ** 18).toFixed(2),
+                    (auction.initiatorBonus.toString() / 10 ** 18).toFixed(2)
+                  );
+                }}
               >
                 <AuctionItemHeader>Auction Information</AuctionItemHeader>
                 <AuctionInfoRow>
@@ -349,6 +383,17 @@ function AuctionList() {
                     <span style={{ fontSize: '15px', marginLeft: '15px' }}>
                       {auction.nonce}
                     </span>
+                  </AuctionInfo>
+                </AuctionInfoRow>
+                <AuctionInfoRow>
+                  <AuctionInfoTitle>Start Time</AuctionInfoTitle>
+                  <AuctionInfo>
+                    {new Date(auction.startTime).getUTCFullYear()}-
+                    {padZero(new Date(auction.startTime).getUTCMonth() + 1)}-
+                    {padZero(new Date(auction.startTime).getUTCDate())}&nbsp;
+                    {padZero(new Date(auction.startTime).getUTCHours())}:
+                    {padZero(new Date(auction.startTime).getUTCMinutes())}:
+                    {padZero(new Date(auction.startTime).getUTCSeconds())}
                   </AuctionInfo>
                 </AuctionInfoRow>
                 <AuctionInfoRow>
@@ -361,17 +406,6 @@ function AuctionList() {
                   <AuctionInfoTitle>Offering Ratio</AuctionInfoTitle>
                   <AuctionInfo>
                     {auction.offeringRatio.toString() / 10 ** 16}%
-                  </AuctionInfo>
-                </AuctionInfoRow>
-                <AuctionInfoRow>
-                  <AuctionInfoTitle>Start Time</AuctionInfoTitle>
-                  <AuctionInfo>
-                    {new Date(auction.startTime).getUTCFullYear()}-
-                    {padZero(new Date(auction.startTime).getUTCMonth() + 1)}-
-                    {padZero(new Date(auction.startTime).getUTCDate())}&nbsp;
-                    {padZero(new Date(auction.startTime).getUTCHours())}:
-                    {padZero(new Date(auction.startTime).getUTCMinutes())}:
-                    {padZero(new Date(auction.startTime).getUTCSeconds())}
                   </AuctionInfo>
                 </AuctionInfoRow>
                 <AuctionInfoRow>
@@ -426,13 +460,35 @@ function AuctionList() {
                 <WrapBoxLabel>Bid Percentage (%)</WrapBoxLabel>
                 <WrapBoxInputWrapper>
                   <WrapBoxAmountInputWrapper>
-                    <WrapBoxAmountInput placeholder='0.0' />
+                    <WrapBoxInputMax
+                      onClick={() => {
+                        setPercentageToBid(maxPercentageToBid);
+                      }}
+                    >
+                      (Max {maxPercentageToBid}%)
+                    </WrapBoxInputMax>
+                    <WrapBoxAmountInput
+                      placeholder='0'
+                      value={percentageToBid}
+                      onChange={(e) => setPercentageToBid(e.target.value)}
+                    />
                   </WrapBoxAmountInputWrapper>
+                  <div style={{ marginLeft: '0.9rem' }}>%</div>
                 </WrapBoxInputWrapper>
               </WrapBoxRow>
             </WrapBoxWrapper>
             <WrapBoxRow>
-              <WrapButton>Place Bid</WrapButton>
+              <WrapButton
+                disabled={
+                  percentageToBid <= 0 || percentageToBid > maxPercentageToBid
+                }
+                onClick={(e) => {
+                  setModalShow(false);
+                  placeBid(percentageToBid);
+                }}
+              >
+                Place Bid
+              </WrapButton>
             </WrapBoxRow>
           </Modal.Body>
         </Modal>
