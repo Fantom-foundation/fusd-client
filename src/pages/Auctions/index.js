@@ -5,6 +5,8 @@ import axios from 'axios';
 import Header from '../../components/Header';
 import { urls } from '../../constants/urls';
 import { toast } from 'react-toastify';
+import { Modal } from 'react-bootstrap';
+
 import { ethers } from 'ethers';
 import {
   useLiquidationManagerContract,
@@ -177,6 +179,93 @@ const ManageAuctionButton = styled.button`
   }
 `;
 
+const WrapBoxWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  &.reverse-direction {
+    flex-direction: column-reverse;
+  }
+`;
+
+const WrapBoxRow = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const WrapBoxLabel = styled.label`
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 17px;
+
+  /* identical to box height */
+
+  color: #141d30;
+  margin-left: 10px;
+`;
+
+const WrapBoxInputWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  border: 1px solid #f3f2fc;
+  box-sizing: border-box;
+  border-radius: 14px;
+  padding: 0 20px;
+  margin-top: 10px;
+  align-items: center;
+`;
+
+const WrapBoxAmountInputWrapper = styled.div`
+  padding: 20px;
+  display: flex;
+  flex: 1 1 auto;
+  border-right: 1px solid #f3f2fc;
+`;
+
+const WrapBoxAmountInput = styled.input`
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 29px;
+
+  /* identical to box height */
+  letter-spacing: -0.01em;
+
+  color: #25273d;
+  border: none;
+  outline: none;
+  text-align: right;
+  width: 50px;
+  flex: 1 1 auto;
+`;
+
+const WrapButton = styled.button`
+  font-family: Inter;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: -0.005em;
+
+  color: #ffffff;
+
+  background: #6764ff;
+  border-radius: 60px;
+  display: flex;
+  justify-content: center;
+  padding: 18px 0px;
+  margin-top: 36px;
+  width: 100%;
+  border: none;
+  outline: none;
+
+  &:disabled {
+    opacity: 0.3;
+  }
+`;
+
 function padZero(number) {
   if (number.toString().length == 1) return '0' + number.toString();
   return number.toString();
@@ -184,12 +273,16 @@ function padZero(number) {
 
 function AuctionList() {
   //console.log('sdf');
+  const [auctions, setAuctions] = useState([]);
+  const [modalShow, setModalShow] = useState(false);
+
   const { account, chainId } = useWeb3React();
 
   const { bidAuction } = useLiquidationManagerContract();
   const { approve, getFUSDBalance } = useFUSDContract();
 
   const doBidding = async (nonce) => {
+    console.log(nonce);
     let fUSDBalance = await getFUSDBalance(account);
     console.log(fUSDBalance);
 
@@ -215,8 +308,6 @@ function AuctionList() {
     }
   };
 
-  const [auctions, setAuctions] = useState([]);
-
   useEffect(() => {
     console.log(`${urls.auction_api_url}/auctions`);
     axios
@@ -228,6 +319,9 @@ function AuctionList() {
       .then(function (response) {
         console.log(response);
         if (response.data !== null) {
+          for (var i = 0; i < response.data.length; i++) {
+            response.data[i].initiatorBonus = '100000000000000000';
+          }
           setAuctions(response.data);
         }
       })
@@ -245,7 +339,8 @@ function AuctionList() {
             {auctions.map((auction, index) => (
               <AuctionItem
                 key={index}
-                onClick={(e) => doBidding(auction.nonce)}
+                // onClick={(e) => doBidding(auction.nonce)}
+                onClick={(e) => setModalShow(true)}
               >
                 <AuctionItemHeader>Auction Information</AuctionItemHeader>
                 <AuctionInfoRow>
@@ -280,6 +375,12 @@ function AuctionList() {
                   </AuctionInfo>
                 </AuctionInfoRow>
                 <AuctionInfoRow>
+                  <AuctionInfoTitle>Initiator Bonus (FTM)</AuctionInfoTitle>
+                  <AuctionInfo>
+                    {(auction.initiatorBonus.toString() / 10 ** 18).toFixed(2)}
+                  </AuctionInfo>
+                </AuctionInfoRow>
+                <AuctionInfoRow>
                   <AuctionInfoTitle>Collateral Value (WFTM)</AuctionInfoTitle>
                   <AuctionInfo>
                     {(auction.collateralValue[0].toString() / 10 ** 18).toFixed(
@@ -307,6 +408,34 @@ function AuctionList() {
             </PageBodyText>
           </>
         )}
+        <Modal
+          size='md'
+          aria-labelledby='contained-modal-title-vcenter'
+          centered
+          show={modalShow}
+          onHide={() => setModalShow(false)}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title id='contained-modal-title-vcenter'>
+              Bid Percentage
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <WrapBoxWrapper className={'reverse-direction'}>
+              <WrapBoxRow>
+                <WrapBoxLabel>Bid Percentage (%)</WrapBoxLabel>
+                <WrapBoxInputWrapper>
+                  <WrapBoxAmountInputWrapper>
+                    <WrapBoxAmountInput placeholder='0.0' />
+                  </WrapBoxAmountInputWrapper>
+                </WrapBoxInputWrapper>
+              </WrapBoxRow>
+            </WrapBoxWrapper>
+            <WrapBoxRow>
+              <WrapButton>Place Bid</WrapButton>
+            </WrapBoxRow>
+          </Modal.Body>
+        </Modal>
       </AuctionListPageWrapper>
     </div>
   );

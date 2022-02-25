@@ -26,13 +26,15 @@ export const useLiquidationManagerContract = () => {
     return contract;
   };
 
-  const bidAuction = async (nonce, percentage) => {
+  const bidAuction = async (nonce, percentage, initiatorBonus) => {
     const contract = await getLiquidationManagerContract();
-    const tx = await contract.bidAuction(nonce, percentage);
+    const tx = await contract.bidAuction(nonce, percentage, {
+      value: ethers.utils.parseEther(initiatorBonus.toString())
+    });
     await tx.wait();
   };
 
   return {
-    bidAuction,
+    bidAuction
   };
 };
