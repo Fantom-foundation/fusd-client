@@ -4,10 +4,11 @@ import styled from 'styled-components';
 import axios from 'axios';
 import Header from '../../components/Header';
 import { urls } from '../../constants/urls';
+import { toast } from 'react-toastify';
 import { ethers } from 'ethers';
 import {
   useLiquidationManagerContract,
-  useFUSDContract,
+  useFUSDContract
 } from '../../contracts';
 import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
 import BigNumber from 'bignumber.js';
@@ -182,26 +183,36 @@ function padZero(number) {
 }
 
 function AuctionList() {
-  console.log('sdf');
+  //console.log('sdf');
   const { account, chainId } = useWeb3React();
 
   const { bidAuction } = useLiquidationManagerContract();
   const { approve, getFUSDBalance } = useFUSDContract();
 
   const doBidding = async (nonce) => {
-    console.log('hello1');
     let fUSDBalance = await getFUSDBalance(account);
-    console.log('hello2');
-    alert(fUSDBalance);
+    console.log(fUSDBalance);
 
-    const decimals = BigNumber('10').pow(18);
-    const amountToApprove = BigNumber('20').multipliedBy(decimals);
-    await approve(
-      LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
-      amountToApprove.toString()
-    );
-    //var percentage = BigNumber('10').pow(16);
-    //await bidAuction(nonce, percentage);
+    if (fUSDBalance.toString() * 1 != 0) {
+      const decimals = BigNumber('10').pow(18);
+      const amountToApprove = BigNumber('20').multipliedBy(decimals);
+      await approve(
+        LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
+        amountToApprove.toString()
+      );
+      //var percentage = BigNumber('10').pow(16);
+      //await bidAuction(nonce, percentage);
+    } else {
+      toast.warning(`You don't have enough FUSD to buy the auction.`, {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined
+      });
+    }
   };
 
   const [auctions, setAuctions] = useState([]);
@@ -211,8 +222,8 @@ function AuctionList() {
     axios
       .get(`${urls.auction_api_url}/auctions`, {
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       })
       .then(function (response) {
         console.log(response);
@@ -232,38 +243,54 @@ function AuctionList() {
         {auctions.length > 0 ? (
           <AuctionInfoWrapper>
             {auctions.map((auction, index) => (
-              <AuctionItem key={index} onClick={(e) => doBidding(index)}>
+              <AuctionItem
+                key={index}
+                onClick={(e) => doBidding(auction.nonce)}
+              >
                 <AuctionItemHeader>Auction Information</AuctionItemHeader>
                 <AuctionInfoRow>
-                  <AuctionInfoTitle>Target</AuctionInfoTitle>
+                  <AuctionInfoTitle>ID</AuctionInfoTitle>
                   <AuctionInfo>
-                    {/* {auction.blockNumber} */}
                     <span style={{ fontSize: '15px', marginLeft: '15px' }}>
-                      {auction.target}
+                      {auction.nonce}
                     </span>
                   </AuctionInfo>
                 </AuctionInfoRow>
                 <AuctionInfoRow>
                   <AuctionInfoTitle>Remaining Percentage</AuctionInfoTitle>
                   <AuctionInfo>
-                    {/* {ethers.utils.parseEther(auction.remainingPercentage)} */}
                     {auction.remainingPercentage.toString() / 10 ** 16}%
+                  </AuctionInfo>
+                </AuctionInfoRow>
+                <AuctionInfoRow>
+                  <AuctionInfoTitle>Offering Ratio</AuctionInfoTitle>
+                  <AuctionInfo>
+                    {auction.offeringRatio.toString() / 10 ** 16}%
                   </AuctionInfo>
                 </AuctionInfoRow>
                 <AuctionInfoRow>
                   <AuctionInfoTitle>Start Time</AuctionInfoTitle>
                   <AuctionInfo>
-                    {/*  {new Date(auction.startTime).getFullYear().toString() +
-                      '-' +
-                      new Date(auction.startTime).getMonth().toString() +
-                      '-' +
-                      new Date(auction.startTime).getDate().toString()} */}
                     {new Date(auction.startTime).getUTCFullYear()}-
                     {padZero(new Date(auction.startTime).getUTCMonth() + 1)}-
                     {padZero(new Date(auction.startTime).getUTCDate())}&nbsp;
                     {padZero(new Date(auction.startTime).getUTCHours())}:
                     {padZero(new Date(auction.startTime).getUTCMinutes())}:
                     {padZero(new Date(auction.startTime).getUTCSeconds())}
+                  </AuctionInfo>
+                </AuctionInfoRow>
+                <AuctionInfoRow>
+                  <AuctionInfoTitle>Collateral Value (WFTM)</AuctionInfoTitle>
+                  <AuctionInfo>
+                    {(auction.collateralValue[0].toString() / 10 ** 18).toFixed(
+                      2
+                    )}
+                  </AuctionInfo>
+                </AuctionInfoRow>
+                <AuctionInfoRow>
+                  <AuctionInfoTitle>Debt Value (FUSD)</AuctionInfoTitle>
+                  <AuctionInfo>
+                    {(auction.debtValue[0].toString() / 10 ** 18).toFixed(2)}
                   </AuctionInfo>
                 </AuctionInfoRow>
               </AuctionItem>
