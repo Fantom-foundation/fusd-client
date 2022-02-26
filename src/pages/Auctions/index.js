@@ -15,6 +15,7 @@ import {
 import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
 import BigNumber from 'bignumber.js';
 import { useWeb3React } from '@web3-react/core';
+import { formatBigNumber } from '../../utils';
 
 const AuctionListPageWrapper = styled.div`
   margin: 20px 0;
@@ -297,6 +298,21 @@ function AuctionList() {
     maxDebtValue,
     initiatorBonus
   ) => {
+    const fUSDBalance = await getFUSDBalance(account);
+    //console.log(formatBigNumber(fUSDBalance));
+    if (formatBigNumber(fUSDBalance) * 1 === 0) {
+      toast.warning(`You don't have enough FUSD to buy the auction.`, {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
+      return;
+    }
+    setPercentageToBid(0);
     setNonceToBid(nonce);
     setMaxPercentageToBid(maxPercentage);
     setMaxDebtValue(maxDebtValue);
@@ -311,19 +327,20 @@ function AuctionList() {
     console.log('maxPercentageToBid :', maxPercentageToBid);
     console.log('percentage :', percentage);
 
-    /* let fUSDBalance = await getFUSDBalance(account);
+    const fUSDBalance = formatBigNumber(await getFUSDBalance(account));
     console.log(fUSDBalance);
-
-    const decimals = BigNumber('10').pow(18);
-
-    if (fUSDBalance.toString() * 1 != 0) {
-      const amountToApprove = BigNumber('20').multipliedBy(decimals);
+    const amountToApprove = (percentage / maxPercentageToBid) * maxDebtValue;
+    console.log(amountToApprove);
+    if (fUSDBalance * 1 >= amountToApprove * 1) {
       await approve(
         LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
-        amountToApprove.toString()
+        ethers.utils.parseEther(amountToApprove.toString())
       );
-      //percentage = BigNumber(percentage.toString()).multipliedBy(BigNumber('10').pow(14));
-      //await bidAuction(nonce, percentage, initiatorBonus);
+      percentage = BigNumber(percentage.toString()).multipliedBy(
+        BigNumber('10').pow(14)
+      );
+      console.log('percentage: ', percentage.toString());
+      await bidAuction(nonceToBid, percentage, initiatorBonusToBid);
     } else {
       toast.warning(`You don't have enough FUSD to buy the auction.`, {
         position: 'top-right',
@@ -334,7 +351,7 @@ function AuctionList() {
         draggable: true,
         progress: undefined,
       });
-    } */
+    }
   };
 
   useEffect(() => {
@@ -367,7 +384,6 @@ function AuctionList() {
                 key={index}
                 // onClick={(e) => doBidding(auction.nonce)}
                 onClick={(e) => {
-                  setPercentageToBid(0);
                   openBidDialog(
                     auction.nonce,
                     auction.remainingPercentage.toString() / 10 ** 16,
