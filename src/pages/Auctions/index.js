@@ -340,7 +340,7 @@ function AuctionList() {
         BigNumber('10').pow(14)
       );
       console.log('percentage: ', percentage.toString());
-      await bidAuction(nonceToBid, percentage, initiatorBonusToBid);
+      await bidAuction(nonceToBid, percentage.toString(), initiatorBonusToBid);
     } else {
       toast.warning(`You don't have enough FUSD to buy the auction.`, {
         position: 'top-right',
