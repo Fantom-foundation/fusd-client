@@ -10,7 +10,7 @@ import { Modal } from 'react-bootstrap';
 import { ethers } from 'ethers';
 import {
   useLiquidationManagerContract,
-  useFUSDContract,
+  useFUSDContract
 } from '../../contracts';
 import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
 import BigNumber from 'bignumber.js';
@@ -308,7 +308,7 @@ function AuctionList() {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
-        progress: undefined,
+        progress: undefined
       });
       return;
     }
@@ -321,23 +321,23 @@ function AuctionList() {
   };
 
   const placeBid = async (percentage) => {
-    console.log('nonceToBid: ', nonceToBid);
-    console.log('maxDebtValue: ', maxDebtValue);
-    console.log('initiatorBonusToBid: ', initiatorBonusToBid);
-    console.log('maxPercentageToBid :', maxPercentageToBid);
-    console.log('percentage :', percentage);
+    //console.log('nonceToBid: ', nonceToBid);
+    //console.log('maxDebtValue: ', maxDebtValue);
+    //console.log('initiatorBonusToBid: ', initiatorBonusToBid);
+    //console.log('maxPercentageToBid :', maxPercentageToBid);
+    //console.log('percentage :', percentage);
 
     const fUSDBalance = formatBigNumber(await getFUSDBalance(account));
-    console.log(fUSDBalance);
+    //console.log(fUSDBalance);
     const amountToApprove = (percentage / maxPercentageToBid) * maxDebtValue;
-    console.log(amountToApprove);
+    //console.log(amountToApprove);
     if (fUSDBalance * 1 >= amountToApprove * 1) {
       await approve(
         LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
         ethers.utils.parseEther(amountToApprove.toString())
       );
       percentage = BigNumber(percentage.toString()).multipliedBy(
-        BigNumber('10').pow(14)
+        BigNumber('10').pow(16)
       );
       console.log('percentage: ', percentage.toString());
       await bidAuction(nonceToBid, percentage.toString(), initiatorBonusToBid);
@@ -349,7 +349,7 @@ function AuctionList() {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
-        progress: undefined,
+        progress: undefined
       });
     }
   };
@@ -359,8 +359,8 @@ function AuctionList() {
     axios
       .get(`${urls.auction_api_url}/auctions`, {
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       })
       .then(function (response) {
         //console.log(response);
