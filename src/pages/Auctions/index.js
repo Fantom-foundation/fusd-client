@@ -329,8 +329,9 @@ function AuctionList() {
 
     const fUSDBalance = formatBigNumber(await getFUSDBalance(account));
     //console.log(fUSDBalance);
-    const amountToApprove = (percentage / maxPercentageToBid) * maxDebtValue;
-    //console.log(amountToApprove);
+    const amountToApprove =
+      (percentage / maxPercentageToBid) * maxDebtValue + 0.1;
+    console.log(amountToApprove);
     if (fUSDBalance * 1 >= amountToApprove * 1) {
       await approve(
         LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
