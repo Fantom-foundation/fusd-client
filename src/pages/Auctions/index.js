@@ -292,6 +292,31 @@ function AuctionList() {
   const { bidAuction } = useLiquidationManagerContract();
   const { approve, getFUSDBalance } = useFUSDContract();
 
+  const getAuctions = async () => {
+    axios
+    .get(`${urls.auction_api_url}/auctions`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(function (response) {
+      //console.log(response);
+      if (response.data !== null) {
+        setAuctions(response.data);
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
+
+  const getAuctionsRegularly = () => {
+      const interval = 5 * 60 * 1000;   
+      getAuctions();
+      setInterval(getAuctions, interval);
+    };
+  }
+
   const openBidDialog = async (
     nonce,
     maxPercentage,
