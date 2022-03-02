@@ -10,7 +10,7 @@ import { Modal } from 'react-bootstrap';
 import { ethers } from 'ethers';
 import {
   useLiquidationManagerContract,
-  useFUSDContract
+  useFUSDContract,
 } from '../../contracts';
 import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
 import BigNumber from 'bignumber.js';
@@ -278,7 +278,6 @@ function padZero(number) {
 }
 
 function AuctionList() {
-  //console.log('sdf');
   const [auctions, setAuctions] = useState([]);
   const [modalShow, setModalShow] = useState(false);
   const [nonceToBid, setNonceToBid] = useState(0);
@@ -293,29 +292,28 @@ function AuctionList() {
   const { approve, getFUSDBalance } = useFUSDContract();
 
   const getAuctions = async () => {
+    console.log('Getting auctions...');
     axios
-    .get(`${urls.auction_api_url}/auctions`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(function (response) {
-      //console.log(response);
-      if (response.data !== null) {
-        setAuctions(response.data);
-      }
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-  }
+      .get(`${urls.auction_api_url}/new-auctions`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(function (response) {
+        if (response.data !== null) {
+          setAuctions(response.data);
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  };
 
   const getAuctionsRegularly = () => {
-      const interval = 5 * 60 * 1000;   
-      getAuctions();
-      setInterval(getAuctions, interval);
-    };
-  }
+    const interval = 1 * 60 * 1000;
+    getAuctions();
+    setInterval(getAuctions, interval);
+  };
 
   const openBidDialog = async (
     nonce,
@@ -324,7 +322,6 @@ function AuctionList() {
     initiatorBonus
   ) => {
     const fUSDBalance = await getFUSDBalance(account);
-    //console.log(formatBigNumber(fUSDBalance));
     if (formatBigNumber(fUSDBalance) * 1 === 0) {
       toast.warning(`You don't have enough FUSD to buy the auction.`, {
         position: 'top-right',
@@ -333,7 +330,7 @@ function AuctionList() {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
-        progress: undefined
+        progress: undefined,
       });
       return;
     }
@@ -346,17 +343,9 @@ function AuctionList() {
   };
 
   const placeBid = async (percentage) => {
-    //console.log('nonceToBid: ', nonceToBid);
-    //console.log('maxDebtValue: ', maxDebtValue);
-    //console.log('initiatorBonusToBid: ', initiatorBonusToBid);
-    //console.log('maxPercentageToBid :', maxPercentageToBid);
-    //console.log('percentage :', percentage);
-
     const fUSDBalance = formatBigNumber(await getFUSDBalance(account));
-    //console.log(fUSDBalance);
     const amountToApprove =
-      (percentage / maxPercentageToBid) * maxDebtValue + 0.1;
-    console.log(amountToApprove);
+      (percentage / maxPercentageToBid) * maxDebtValue + 0.001;
     if (fUSDBalance * 1 >= amountToApprove * 1) {
       await approve(
         LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
@@ -365,7 +354,6 @@ function AuctionList() {
       percentage = BigNumber(percentage.toString()).multipliedBy(
         BigNumber('10').pow(16)
       );
-      console.log('percentage: ', percentage.toString());
       await bidAuction(nonceToBid, percentage.toString(), initiatorBonusToBid);
     } else {
       toast.warning(`You don't have enough FUSD to buy the auction.`, {
@@ -375,28 +363,13 @@ function AuctionList() {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
-        progress: undefined
+        progress: undefined,
       });
     }
   };
 
   useEffect(() => {
-    console.log(`${urls.auction_api_url}/auctions`);
-    axios
-      .get(`${urls.auction_api_url}/auctions`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(function (response) {
-        //console.log(response);
-        if (response.data !== null) {
-          setAuctions(response.data);
-        }
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+    getAuctionsRegularly();
   }, []);
 
   return (
