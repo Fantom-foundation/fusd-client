@@ -10,7 +10,7 @@ import { Modal } from 'react-bootstrap';
 import { ethers } from 'ethers';
 import {
   useLiquidationManagerContract,
-  useFUSDContract,
+  useFUSDContract
 } from '../../contracts';
 import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
 import BigNumber from 'bignumber.js';
@@ -296,8 +296,8 @@ function AuctionList() {
     axios
       .get(`${urls.auction_api_url}/new-auctions`, {
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       })
       .then(function (response) {
         if (response.data !== null) {
@@ -330,7 +330,7 @@ function AuctionList() {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
-        progress: undefined,
+        progress: undefined
       });
       return;
     }
@@ -345,7 +345,7 @@ function AuctionList() {
   const placeBid = async (percentage) => {
     const fUSDBalance = formatBigNumber(await getFUSDBalance(account));
     const amountToApprove =
-      (percentage / maxPercentageToBid) * maxDebtValue + 0.001;
+      (percentage / maxPercentageToBid) * maxDebtValue + 0.01;
     if (fUSDBalance * 1 >= amountToApprove * 1) {
       await approve(
         LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
@@ -363,7 +363,7 @@ function AuctionList() {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
-        progress: undefined,
+        progress: undefined
       });
     }
   };
@@ -420,7 +420,7 @@ function AuctionList() {
                 <AuctionInfoRow>
                   <AuctionInfoTitle>Offering Ratio</AuctionInfoTitle>
                   <AuctionInfo>
-                    {auction.offeringRatio.toString() / 10 ** 16}%
+                    {(auction.offeringRatio.toString() / 10 ** 16).toFixed(2)}%
                   </AuctionInfo>
                 </AuctionInfoRow>
                 <AuctionInfoRow>
