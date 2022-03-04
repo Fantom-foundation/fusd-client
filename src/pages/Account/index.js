@@ -113,24 +113,29 @@ function Account() {
   useEffect(() => {
     //Runs on the first render and when account changes
     setLoading(true);
-    axios.get(`${urls.api_url}/account/${account}`).then(function (response) {
-      const data = response.data;
-
-      if (data.success) {
-        if (data.data) {
-          setName(data.data.name);
-          setEmail(data.data.email);
-          setRegister(false);
+    axios
+      .get(`${urls.api_url}/account/${account}`)
+      .then(function (response) {
+        const data = response.data;
+        if (data.success) {
+          if (data.data) {
+            setName(data.data.name);
+            setEmail(data.data.email);
+            setRegister(false);
+          } else {
+            setName('');
+            setEmail('');
+            setRegister(true);
+          }
         } else {
-          setName('');
-          setEmail('');
-          setRegister(true);
         }
-      } else {
-      }
 
-      setLoading(false);
-    });
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.warn(error);
+        setLoading(false);
+      });
   }, [account]);
 
   const handleNameChange = (e) => {

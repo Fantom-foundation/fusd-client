@@ -142,7 +142,7 @@ function ResetPassword() {
             progress: undefined,
           });
         } else {
-          toast.error(data.msg, {
+          toast.error(`An error has occured!`, {
             position: 'top-right',
             autoClose: 3000,
             hideProgressBar: true,

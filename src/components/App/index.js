@@ -8,10 +8,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Home from '../../pages/Home';
 import Connect from '../../pages/Connect';
 import Account from '../../pages/Account';
+import Auctions from '../../pages/Auctions';
 import ResetPassword from '../../pages/ResetPassword';
 import Vault from '../../pages/Vault';
 import Vaults from '../../pages/Vaults';
-import Auctions from '../../pages/Auctions';
 import { ChainIDs } from '../../constants/walletconnection';
 import { useWeb3React } from '@web3-react/core';
 import PriceActions from '../../actions/price.actions';
@@ -72,13 +72,10 @@ function App() {
           <Route path='/vault'>
             <Vault />
           </Route>
-          <Route path='/vaults'>
-            <Vaults />
-          </Route>
-          <Route path="/auctions">
+          <Route path='/auctions'>
             <Auctions />
           </Route>
-          <Route path="/">
+          <Route path='/'>
             <Home />
           </Route>
         </Switch>
