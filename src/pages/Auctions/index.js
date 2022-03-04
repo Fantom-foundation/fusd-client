@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
-import { useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import Header from '../../components/Header';
 import { urls } from '../../constants/urls';
 import { toast } from 'react-toastify';
-import { Modal } from 'react-bootstrap';
+import { Modal, Button } from 'react-bootstrap';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 import { ethers } from 'ethers';
 import {
   useLiquidationManagerContract,
   useFUSDContract
 } from '../../contracts';
+import StepBar from '../../components/StepBar';
 import { LIQUIDATION_MANAGER_CONTRACT_ADDRESS } from '../../constants/walletconnection';
 import BigNumber from 'bignumber.js';
 import { useWeb3React } from '@web3-react/core';
 import { formatBigNumber } from '../../utils';
+
+let justBids = [];
+let reload = false;
 
 const AuctionListPageWrapper = styled.div`
   margin: 20px 0;
@@ -280,6 +284,9 @@ function padZero(number) {
 function AuctionList() {
   const [auctions, setAuctions] = useState([]);
   const [modalShow, setModalShow] = useState(false);
+  const [modalShow2, setModalShow2] = useState(false);
+  const [activeStep, setActiveStep] = useState(1);
+  const [progressing, setProgressing] = useState(false);
   const [nonceToBid, setNonceToBid] = useState(0);
   const [maxPercentageToBid, setMaxPercentageToBid] = useState(0);
   const [percentageToBid, setPercentageToBid] = useState(0);
@@ -293,20 +300,29 @@ function AuctionList() {
 
   const getAuctions = async () => {
     console.log('Getting auctions...');
-    axios
-      .get(`${urls.auction_api_url}/new-auctions`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(function (response) {
-        if (response.data !== null) {
-          setAuctions(response.data);
-        }
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+    if (reload) {
+      reload = false;
+      window.location.reload();
+    } else {
+      axios
+        .get(`${urls.auction_api_url}/new-auctions`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(function (response) {
+          if (response.data !== null) {
+            justBids = [];
+            for (const auction of response.data) {
+              justBids.push({ nonce: auction.nonce, bid: false });
+            }
+            setAuctions(response.data);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
   };
 
   const getAuctionsRegularly = () => {
@@ -342,32 +358,58 @@ function AuctionList() {
     setModalShow(true);
   };
 
-  const placeBid = async (percentage) => {
-    const fUSDBalance = formatBigNumber(await getFUSDBalance(account));
-    const amountToApprove =
-      (percentage / maxPercentageToBid) * maxDebtValue + 0.01;
-    if (fUSDBalance * 1 >= amountToApprove * 1) {
-      await approve(
-        LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
-        ethers.utils.parseEther(amountToApprove.toString())
-      );
-      percentage = BigNumber(percentage.toString()).multipliedBy(
-        BigNumber('10').pow(16)
-      );
-      await bidAuction(nonceToBid, percentage.toString(), initiatorBonusToBid);
-    } else {
-      toast.warning(`You don't have enough FUSD to buy the auction.`, {
-        position: 'top-right',
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined
-      });
+  const goToNextStep = async (percentage) => {
+    setProgressing(true);
+    let currentStep = activeStep;
+    try {
+      if (activeStep === 1) {
+        const fUSDBalance = formatBigNumber(await getFUSDBalance(account));
+        const amountToApprove =
+          (percentage / maxPercentageToBid) * maxDebtValue + 0.01;
+        if (fUSDBalance * 1 >= amountToApprove * 1) {
+          await approve(
+            LIQUIDATION_MANAGER_CONTRACT_ADDRESS[chainId],
+            ethers.utils.parseEther(amountToApprove.toString())
+          );
+          currentStep++;
+        } else {
+          toast.warning(`You don't have enough FUSD to buy the auction.`, {
+            position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined
+          });
+        }
+        setProgressing(false);
+        setActiveStep(currentStep);
+      }
+
+      if (activeStep == 2) {
+        percentage = BigNumber(percentage.toString()).multipliedBy(
+          BigNumber('10').pow(16)
+        );
+        await bidAuction(
+          nonceToBid,
+          percentage.toString(),
+          initiatorBonusToBid
+        );
+        var jb = justBids.find((obj) => {
+          return obj.nonce == nonceToBid;
+        });
+        jb.bid = true;
+        reload = true;
+        setProgressing(false);
+        setModalShow2(false);
+      }
+    } catch (err) {
+      console.log(err);
+      setProgressing(false);
+      setModalShow2(false);
     }
   };
-
   useEffect(() => {
     getAuctionsRegularly();
   }, []);
@@ -381,14 +423,32 @@ function AuctionList() {
             {auctions.map((auction, index) => (
               <AuctionItem
                 key={index}
-                // onClick={(e) => doBidding(auction.nonce)}
+                disabled={true}
                 onClick={(e) => {
-                  openBidDialog(
-                    auction.nonce,
-                    auction.remainingPercentage.toString() / 10 ** 16,
-                    (auction.debtValue[0].toString() / 10 ** 18).toFixed(2),
-                    (auction.initiatorBonus.toString() / 10 ** 18).toFixed(2)
-                  );
+                  var jb = justBids.find((obj) => {
+                    return obj.nonce == auction.nonce;
+                  });
+                  if (jb.bid) {
+                    toast.warning(
+                      `You just bid this auction. Please wait a little bit before bidding the same auction again.`,
+                      {
+                        position: 'top-right',
+                        autoClose: 3000,
+                        hideProgressBar: true,
+                        closeOnClick: true,
+                        pauseOnHover: false,
+                        draggable: true,
+                        progress: undefined
+                      }
+                    );
+                  } else {
+                    openBidDialog(
+                      auction.nonce,
+                      auction.remainingPercentage.toString() / 10 ** 16,
+                      (auction.debtValue[0].toString() / 10 ** 18).toFixed(2),
+                      (auction.initiatorBonus.toString() / 10 ** 18).toFixed(2)
+                    );
+                  }
                 }}
               >
                 <AuctionItemHeader>Auction Information</AuctionItemHeader>
@@ -498,14 +558,47 @@ function AuctionList() {
                   percentageToBid <= 0 || percentageToBid > maxPercentageToBid
                 }
                 onClick={(e) => {
+                  setActiveStep(1);
                   setModalShow(false);
-                  placeBid(percentageToBid);
+                  setModalShow2(true);
                 }}
               >
                 Place Bid
               </WrapButton>
             </WrapBoxRow>
           </Modal.Body>
+        </Modal>
+        <Modal
+          size='md'
+          aria-labelledby='contained-modal-title-vcenter'
+          centered
+          show={modalShow2}
+          onHide={() => setModalShow2(false)}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title id='contained-modal-title-vcenter'>
+              Confirmation
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <StepBar step={activeStep} steps={[1, 2]} />
+          </Modal.Body>
+          <Modal.Footer>
+            {!progressing && (
+              <Button onClick={() => setModalShow2(false)}>Cancel</Button>
+            )}
+            <Button
+              variant='primary'
+              onClick={() => goToNextStep(percentageToBid)}
+              disabled={progressing}
+            >
+              {progressing ? (
+                <ClipLoader color='#EFF3FB' loading={progressing} size={24} />
+              ) : (
+                'Submit'
+              )}
+            </Button>
+          </Modal.Footer>
         </Modal>
       </AuctionListPageWrapper>
     </div>

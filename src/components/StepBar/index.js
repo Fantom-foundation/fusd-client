@@ -1,15 +1,15 @@
 import React from 'react';
-import styled from 'styled-components'
+import styled from 'styled-components';
 
 const StepBarContainer = styled.div`
-display: flex;
-`
+  display: flex;
+`;
 
 const StepContainer = styled.div`
   display: inline-block;
   margin: 0 auto;
   overflow: hidden;
-`
+`;
 
 const Steps = styled.div`
   display: flex;
@@ -17,7 +17,7 @@ const Steps = styled.div`
   justify-content: center;
   position: relative;
   &::before {
-    content: "";
+    content: '';
     width: 100%;
     display: block;
     height: 4px;
@@ -25,10 +25,10 @@ const Steps = styled.div`
     top: 50%;
     left: 0;
     transform: translateY(-50%);
-    background-color: #EEE;
+    background-color: #eee;
     z-index: 0;
   }
-`
+`;
 
 const Step = styled.div`
   width: 30px;
@@ -37,30 +37,35 @@ const Step = styled.div`
   justify-content: center;
   align-items: center;
   color: #000;
-  background-color: #EEE;
+  background-color: #eee;
   border-radius: 50px;
   margin-right: 80px;
   position: relative;
   &.active {
-    background-color: #55B5E7;
+    background-color: #55b5e7;
   }
   &:last-child {
-      margin-right: 0px;
+    margin-right: 0px;
   }
-`
+`;
 
 function StepBar(props) {
-	const steps = [1, 2, 3];
+  const steps = props.steps ? props.steps : [1, 2, 3];
 
   return (
     <StepBarContainer>
       <StepContainer>
         <Steps>
-        {
-          steps.map((stepNumber) => {
-            return <Step className={stepNumber <= props.step ? 'active' : ''}>{stepNumber}</Step>
-          })
-        }
+          {steps.map((stepNumber, index) => {
+            return (
+              <Step
+                className={stepNumber <= props.step ? 'active' : ''}
+                key={index}
+              >
+                {stepNumber}
+              </Step>
+            );
+          })}
         </Steps>
       </StepContainer>
     </StepBarContainer>
